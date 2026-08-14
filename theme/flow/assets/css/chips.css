@@ -1,0 +1,50 @@
+/* 8 pairs of muted colors for chips */
+:root {
+  /* Light mode - bg: ~90% lightness, fg: ~30% lightness */
+  --chip-0-bg: #ffebee; --chip-0-fg: #b71c1c; /* red */
+  --chip-1-bg: #f3e5f5; --chip-1-fg: #4a148c; /* purple */
+  --chip-2-bg: #e8eaf6; --chip-2-fg: #1a237e; /* indigo */
+  --chip-3-bg: #e1f5fe; --chip-3-fg: #01579b; /* light blue */
+  --chip-4-bg: #e8f5e9; --chip-4-fg: #1b5e20; /* green */
+  --chip-5-bg: #fff8e1; --chip-5-fg: #994300; /* amber/brown for 4.5+ contrast */
+  --chip-6-bg: #efebe9; --chip-6-fg: #3e2723; /* brown */
+  --chip-7-bg: #eceff1; --chip-7-fg: #263238; /* blue grey */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode - bg: ~18% lightness, fg: ~75% lightness */
+    --chip-0-bg: #3c1418; --chip-0-fg: #ef9a9a; /* red */
+    --chip-1-bg: #301b3f; --chip-1-fg: #ce93d8; /* purple */
+    --chip-2-bg: #1c214d; --chip-2-fg: #9fa8da; /* indigo */
+    --chip-3-bg: #0c2b3d; --chip-3-fg: #81d4fa; /* light blue */
+    --chip-4-bg: #153317; --chip-4-fg: #a5d6a7; /* green */
+    --chip-5-bg: #4d380e; --chip-5-fg: #ffe082; /* amber */
+    --chip-6-bg: #302621; --chip-6-fg: #bcaaa4; /* brown */
+    --chip-7-bg: #1c252a; --chip-7-fg: #b0bec5; /* blue grey */
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10.5px;
+  font-weight: 500;
+  flex: 0 0 auto;
+  line-height: 1.2;
+}
+
+.chip--0 { background-color: var(--chip-0-bg); color: var(--chip-0-fg); }
+.chip--1 { background-color: var(--chip-1-bg); color: var(--chip-1-fg); }
+.chip--2 { background-color: var(--chip-2-bg); color: var(--chip-2-fg); }
+.chip--3 { background-color: var(--chip-3-bg); color: var(--chip-3-fg); }
+.chip--4 { background-color: var(--chip-4-bg); color: var(--chip-4-fg); }
+.chip--5 { background-color: var(--chip-5-bg); color: var(--chip-5-fg); }
+.chip--6 { background-color: var(--chip-6-bg); color: var(--chip-6-fg); }
+.chip--7 { background-color: var(--chip-7-bg); color: var(--chip-7-fg); }

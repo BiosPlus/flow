@@ -2,6 +2,7 @@
 title = "Fixture TOC"
 date = 2026-08-15T10:00:00Z
 toc = true
+tags = ["thought", "tip", "meta"]
 +++
 
 Here is a TOC test.

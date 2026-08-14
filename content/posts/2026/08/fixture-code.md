@@ -1,6 +1,7 @@
 +++
 title = "Fixture Code"
 date = 2026-08-16T10:00:00Z
+tags = ["meta"]
 +++
 
 Here is some code.

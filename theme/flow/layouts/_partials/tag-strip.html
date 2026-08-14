@@ -1,0 +1,47 @@
+{{ $isAll := eq .Kind "home" }}
+{{ if eq .Kind "section" }}{{ $isAll = true }}{{ end }}
+{{ if eq .Kind "page" }}{{ $isAll = true }}{{ end }}
+
+{{ $currentTag := "" }}
+{{ if eq .Kind "term" }}
+  {{ $currentTag = .Title }}
+{{ end }}
+
+<div class="tag-strip-container">
+  <div class="tag-strip">
+    <a href="/" class="tag-strip-item {{ if $isAll }}current{{ end }}" {{ if $isAll }}aria-current="page"{{ end }}>
+      all
+    </a>
+
+    {{ if site.Taxonomies.tags }}
+      {{ $renderedTags := dict }}
+
+      {{ if site.Params.pinnedTags }}
+        {{ range site.Params.pinnedTags }}
+          {{ $tagTaxonomy := index site.Taxonomies.tags . }}
+          {{ if $tagTaxonomy }}
+            {{ $renderedTags = merge $renderedTags (dict . true) }}
+            {{ $isCurrent := eq $currentTag . }}
+            <a href="/tags/{{ . | urlize }}/" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
+              {{ . }} <span class="tag-count">{{ len $tagTaxonomy }}</span>
+            </a>
+          {{ end }}
+        {{ end }}
+      {{ end }}
+
+      {{ range site.Taxonomies.tags.ByCount }}
+        {{ if not (index $renderedTags .Term) }}
+          {{ $isCurrent := eq $currentTag .Term }}
+          <a href="/tags/{{ .Term | urlize }}/" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
+            {{ .Term }} <span class="tag-count">{{ .Count }}</span>
+          </a>
+        {{ end }}
+      {{ end }}
+
+      {{ $isAllTags := eq .Kind "taxonomy" }}
+      <a href="/tags/" class="tag-strip-item {{ if $isAllTags }}current{{ end }}" {{ if $isAllTags }}aria-current="page"{{ end }}>
+        all tags
+      </a>
+    {{ end }}
+  </div>
+</div>

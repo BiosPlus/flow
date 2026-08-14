@@ -1,6 +1,18 @@
 {{ define "main" }}
-  <p>No post selected</p>
+  <div style="padding: 2rem;">
+    <h1 style="margin-top: 0;">Tags</h1>
+    {{ $tags := site.Taxonomies.tags }}
+    <ul style="list-style: none; padding: 0;">
+      {{ range $tags.ByCount }}
+        <li style="margin-bottom: 0.5rem;">
+          <a href="{{ .Page.RelPermalink }}" style="color: var(--focus); text-decoration: none; font-weight: 500;">{{ .Term }}</a>
+          <span style="color: var(--ink-soft); font-size: 0.9em; margin-left: 0.5rem;">{{ .Count }}</span>
+        </li>
+      {{ end }}
+    </ul>
+  </div>
 {{ end }}
 {{ define "message-list" }}
-  {{ partial "message-list.html" (dict "Pages" .Pages "Current" .) }}
+  {{ $pages := where site.RegularPages "Section" "posts" }}
+  {{ partial "message-list.html" (dict "Pages" $pages "Current" .) }}
 {{ end }}
