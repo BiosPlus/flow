@@ -3,20 +3,50 @@
 <head>
   <meta charset="utf-8">
   <title>{{ .Title }}</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    .layout-wrapper {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .list-pane {
+      width: 350px;
+      border-right: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .reading-pane {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    a.current-row {
+      background: #e3f2fd;
+      border-left: 4px solid #1976d2;
+    }
+  </style>
 </head>
 <body>
-  <a href="#reading">Skip to content</a>
+  <a href="#reading" style="position: absolute; left: -9999px;">Skip to content</a>
   <header>
-    <!-- Toolbar placeholder -->
+    {{ partial "toolbar.html" . }}
   </header>
   <nav>
     <!-- Tag strip placeholder -->
   </nav>
-  <div>
-    <nav>
-      <!-- Message list placeholder -->
+  <div class="layout-wrapper">
+    <nav class="list-pane">
+      {{ block "message-list" . }}{{ end }}
     </nav>
-    <main id="reading">
+    <main id="reading" class="reading-pane">
       {{ block "main" . }}{{ end }}
     </main>
   </div>

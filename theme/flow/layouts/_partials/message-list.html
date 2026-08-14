@@ -1,0 +1,11 @@
+{{ $pages := .Pages }}
+{{ $current := .Current }}
+{{ $total := len $pages }}
+<div class="message-list-header" style="padding: 0.5rem; background: #fafafa; border-bottom: 1px solid #ddd;">
+  <span>1 to {{ $total }} of {{ $total }}</span>
+</div>
+<div class="message-list-items" style="overflow-y: auto;">
+  {{ range $pages }}
+    {{ partial "message-row.html" (dict "Page" . "Current" $current) }}
+  {{ end }}
+</div>

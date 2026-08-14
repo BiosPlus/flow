@@ -1,0 +1,7 @@
+{{ define "main" }}
+  <p>No post selected</p>
+{{ end }}
+{{ define "message-list" }}
+  {{ $pages := where site.RegularPages "Section" "posts" }}
+  {{ partial "message-list.html" (dict "Pages" $pages "Current" .) }}
+{{ end }}
