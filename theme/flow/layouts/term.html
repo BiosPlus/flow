@@ -1,9 +1,5 @@
 {{ define "main" }}
-  <div style="padding: 2rem;">
-    <h1 style="margin-top: 0;">{{ .Title }}</h1>
-    <p>{{ len .Pages }} posts tagged {{ .Title }}. Pick one from the list.</p>
-    <a href="/" style="color: var(--focus);">Back to all posts</a>
-  </div>
+  {{ partial "reading-empty.html" (len .Pages) }}
 {{ end }}
 {{ define "message-list" }}
   {{ partial "message-list.html" (dict "Pages" .Pages "Current" .) }}

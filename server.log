@@ -1,0 +1,21 @@
+Watching for changes in /app/assets/images, /app/content/posts, /app/theme/flow/assets/css, /app/theme/flow/layouts/{_markup,_partials,_shortcodes}
+Watching for config changes in /app/hugo.toml, /app/theme/flow/hugo.toml
+Start building sites …
+hugo v0.165.0-76a5e1880ab46688155b02e99bab9be2a6134492+extended linux/amd64 BuildDate=2026-08-12T14:26:28Z VendorInfo=gohugoio
+
+
+                  │ EN
+──────────────────┼────
+ Pages            │ 25
+ Paginator pages  │  0
+ Non-page files   │  0
+ Static files     │  0
+ Processed images │  0
+ Aliases          │  0
+ Cleaned          │  0
+
+Built in 27 ms
+Environment: "development"
+Serving pages from disk
+Web Server is available at //localhost:1313/ (bind address 127.0.0.1)
+Press Ctrl+C to stop

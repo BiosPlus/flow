@@ -1,5 +1,6 @@
 {{ define "main" }}
-  <p>No post selected</p>
+  {{ $pages := where site.RegularPages "Section" "posts" }}
+  {{ partial "reading-empty.html" (len $pages) }}
 {{ end }}
 {{ define "message-list" }}
   {{ $pages := where site.RegularPages "Section" "posts" }}
