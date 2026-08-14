@@ -107,3 +107,21 @@ div[style*="padding-bottom: 56.25%"] iframe {
 .toc a {
   color: inherit;
 }
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+figure.breakout {
+  max-width: none;
+  width: 100%;
+  overflow-x: auto;
+}
+
+figcaption {
+  max-width: 68ch;
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin-top: 0.5rem;
+}
