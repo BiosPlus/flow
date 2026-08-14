@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html class="k-{{ .Kind }}" lang="en-au">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Title }}</title>
+</head>
+<body>
+  <a href="#reading">Skip to content</a>
+  <header>
+    <!-- Toolbar placeholder -->
+  </header>
+  <nav>
+    <!-- Tag strip placeholder -->
+  </nav>
+  <div>
+    <nav>
+      <!-- Message list placeholder -->
+    </nav>
+    <main id="reading">
+      {{ block "main" . }}{{ end }}
+    </main>
+  </div>
+</body>
+</html>

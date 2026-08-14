@@ -1,0 +1,5 @@
+name = "flow"
+license = "MIT"
+author = "BiosPlus"
+description = "A blog presented as a mail client."
+min_version = "0.165.0"
