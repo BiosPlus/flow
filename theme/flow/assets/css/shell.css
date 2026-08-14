@@ -46,3 +46,57 @@ nav {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* Tag Strip */
+.tag-strip-container {
+  position: relative;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tag-strip-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2rem;
+  background: linear-gradient(to right, transparent, var(--surface));
+  pointer-events: none;
+}
+
+.tag-strip {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+  padding: 0 1rem;
+}
+
+.tag-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.tag-strip-item {
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  flex: 0 0 auto;
+}
+
+.tag-strip-item.current {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+
+.tag-strip-item:hover, .tag-strip-item:focus {
+  background-color: var(--row-hover);
+}
+
+.tag-count {
+  opacity: 0.7;
+  font-size: 0.9em;
+}

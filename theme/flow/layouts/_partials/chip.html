@@ -1,0 +1,2 @@
+{{ $i := mod (hash.FNV32a .) 8 }}
+<span class="chip chip--{{ $i }}">{{ . }}</span>
