@@ -1,5 +1,5 @@
 {{ define "main" }}
-  <p>No post selected</p>
+  {{ partial "reading-empty.html" (len .Pages) }}
 {{ end }}
 {{ define "message-list" }}
   {{ partial "message-list.html" (dict "Pages" .Pages "Current" .) }}

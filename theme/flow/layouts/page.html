@@ -1,8 +1,45 @@
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
-  <p>{{ .Date.Format "2 Jan 2006" }}</p>
-  {{ .Content }}
+  <div class="reading-meta">
+    {{ .Date.Format "2 Jan 2006" }}
+    {{- if .Params.tags -}}
+      <span> · </span>
+      {{- range $i, $tag := .Params.tags -}}
+        {{- if $i }} · {{ end -}}
+        <a href="{{ "/tags/" | relLangURL }}{{ $tag | urlize }}/">{{ $tag }}</a>
+      {{- end -}}
+    {{- end -}}
+  </div>
+
+  {{ if .Params.toc }}
+    <div class="toc">
+      {{ .TableOfContents }}
+    </div>
+  {{ end }}
+
+  <div class="reading__body">
+    {{ .Content }}
+  </div>
+
+  <div style="margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font-size: 14px;">
+    {{ $posts := where site.RegularPages "Section" "posts" }}
+    {{ $newer := $posts.Prev . }}
+    {{ $older := $posts.Next . }}
+
+    {{ if $older }}
+      <a href="{{ $older.RelPermalink }}" style="color: var(--focus); text-decoration: none;">&larr; Older</a>
+    {{ else }}
+      <span style="color: var(--ink-soft);">&larr; Older</span>
+    {{ end }}
+
+    {{ if $newer }}
+      <a href="{{ $newer.RelPermalink }}" style="color: var(--focus); text-decoration: none;">Newer &rarr;</a>
+    {{ else }}
+      <span style="color: var(--ink-soft);">Newer &rarr;</span>
+    {{ end }}
+  </div>
 {{ end }}
+
 {{ define "message-list" }}
   {{ $pages := where site.RegularPages "Section" "posts" }}
   {{ partial "message-list.html" (dict "Pages" $pages "Current" .) }}
