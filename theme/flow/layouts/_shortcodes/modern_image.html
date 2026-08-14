@@ -1,64 +1,11 @@
-{{/*
-  Shortcode: modern_image
-  Description: Displays an image, converting to WebP using ImageMagick if not animated (i.e., not a GIF).
-  Parameters:
-    src (string, required): Path to the image relative to 'assets/images/'.
-    alt (string, optional): Alt text for the image. Defaults to 'title' or 'src'.
-    caption (string, optional): Caption for the image, displayed in a <figcaption>.
-    class (string, optional): CSS class for the <figure> element.
-    loading (string, optional): Value for the img loading attribute (e.g., "lazy", "eager"). Defaults to "lazy".
-    width (string, optional): Width attribute for the img tag.
-    height (string, optional): Height attribute for the img tag.
-    quality (string, optional): Quality for WebP conversion (e.g., "75"). Used with ImageMagick convert.
-  Usage:
-    modern_image src="example.jpg" alt="An example image" caption="This is a caption."
-    modern_image src="animated.gif" alt="An animated GIF"
-*/}}
-
-{{- $src := .Get "src" -}}
-{{- if not $src -}}
-  {{- errorf "modern_image shortcode: 'src' parameter is required." -}}
-  {{- return -}}
-{{- end -}}
-
-{{- $alt := .Get "alt" | default (.Get "title") | default $src -}}
-{{- $caption := .Get "caption" -}}
-{{- $class := .Get "class" -}}
-{{- $loading := .Get "loading" | default "lazy" -}}
-{{- $imgWidth := .Get "width" -}}
-{{- $imgHeight := .Get "height" -}}
-
-{{- $imageAssetPath := printf "images/%s" $src -}}
-{{- $image := resources.Get $imageAssetPath -}}
-
-{{- if not $image -}}
-  {{- errorf "modern_image shortcode: Image '%s' not found in 'assets/images/'. Full path attempted: '%s'" $src $imageAssetPath -}}
-  {{- return -}}
-{{- end -}}
-
-<figure{{ with $class }} class="{{ . }}"{{ end }}>  {{- if eq $image.MediaType.SubType "gif" -}}
-    {{- /* Assume GIFs are animated and serve them directly to preserve animation. */ -}}
-    {{- warnf "modern_image: Serving GIF directly (preserving animation): %s" $src -}}
-    <img src="{{ $image.RelPermalink }}"
-         alt="{{ $alt }}"
-         {{- with $loading }} loading="{{ . }}"{{ end -}}
-         {{- with $imgWidth }} width="{{ . }}"{{ end -}}
-         {{- with $imgHeight }} height="{{ . }}"{{ end -}}>
-  {{- else -}}
-    {{- /* For non-GIF images, process to WebP using ImageMagick. */ -}}
-    {{- $quality := .Get "quality" | default "75" -}}
-    {{- $convertOptions := printf "convert -quality %s webp" $quality -}}
-    {{- warnf "modern_image: Converting %s (%s, %dx%d) to WebP using ImageMagick with options: %s" $src $image.MediaType $image.Width $image.Height $convertOptions -}}
-    {{- $webpImage := $image.Process $convertOptions -}}
-    {{- warnf "modern_image: Conversion complete. Original: %d bytes, WebP: %d bytes (%.1f%% of original)" (len $image.Content) (len $webpImage.Content) (div (mul (len $webpImage.Content) 100.0) (len $image.Content)) -}}
-    <img src="{{ $webpImage.RelPermalink }}"
-         alt="{{ $alt }}"
-         type="image/webp"
-         {{- with $loading }} loading="{{ . }}"{{ end -}}
-         {{- with $imgWidth }} width="{{ . }}"{{ end -}}
-         {{- with $imgHeight }} height="{{ . }}"{{ end -}}>
-  {{- end -}}
-  {{- with $caption -}}
-    <figcaption>{{ . | safeHTML }}</figcaption>
-  {{- end -}}
-</figure>
+{{- $args := dict
+  "src" (.Get "src")
+  "alt" (.Get "alt" | default (.Get "title"))
+  "caption" (.Get "caption")
+  "class" (.Get "class")
+  "loading" (.Get "loading")
+  "width" (.Get "width")
+  "height" (.Get "height")
+  "quality" (.Get "quality")
+-}}
+{{- partial "image-processor.html" $args -}}

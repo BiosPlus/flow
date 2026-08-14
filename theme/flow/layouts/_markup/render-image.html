@@ -1,0 +1,6 @@
+{{- $args := dict
+  "src" .Destination
+  "alt" .Text
+  "caption" .Title
+-}}
+{{- partial "image-processor.html" $args -}}

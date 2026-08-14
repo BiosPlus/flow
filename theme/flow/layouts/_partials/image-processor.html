@@ -1,0 +1,57 @@
+{{- $src := .src -}}
+{{- if not $src -}}
+  {{- errorf "image-processor: 'src' parameter is required." -}}
+  {{- return -}}
+{{- end -}}
+
+{{- $alt := .alt | default $src -}}
+{{- $caption := .caption -}}
+{{- $class := .class -}}
+{{- $loading := .loading | default "lazy" -}}
+{{- $imgWidth := .width -}}
+{{- $imgHeight := .height -}}
+
+{{- $imageAssetPath := printf "images/%s" $src -}}
+{{- $image := resources.Get $imageAssetPath -}}
+
+{{- if not $image -}}
+  {{- errorf "image-processor: Image '%s' not found in 'assets/images/'. Full path attempted: '%s'" $src $imageAssetPath -}}
+  {{- return -}}
+{{- end -}}
+
+{{- $isGif := eq $image.MediaType.SubType "gif" -}}
+
+{{- $figureClass := "" -}}
+{{- if $class -}}
+  {{- $figureClass = printf " class=\"%s\"" $class -}}
+{{- end -}}
+
+{{- $hasCaption := or $caption $class -}}
+
+{{- if $hasCaption -}}
+<figure{{ $figureClass | safeHTMLAttr }}>
+{{- end -}}
+
+{{- if $isGif -}}
+  <img src="{{ $image.RelPermalink }}" alt="{{ $alt }}" width="{{ $image.Width }}" height="{{ $image.Height }}" loading="{{ $loading }}" decoding="async">
+{{- else -}}
+  {{- $quality := .quality | default "75" -}}
+  {{- /* Need to process AVIF and WebP */ -}}
+  {{- $avifProcessOpt := printf "avif q%s" $quality -}}
+  {{- $webpProcessOpt := printf "webp q%s" $quality -}}
+
+  {{- $avifImage := $image.Process $avifProcessOpt -}}
+  {{- $webpImage := $image.Process $webpProcessOpt -}}
+  <picture>
+    <source type="image/avif" srcset="{{ $avifImage.RelPermalink }}">
+    <source type="image/webp" srcset="{{ $webpImage.RelPermalink }}">
+    <img src="{{ $image.RelPermalink }}" alt="{{ $alt }}" width="{{ $image.Width }}" height="{{ $image.Height }}" loading="{{ $loading }}" decoding="async">
+  </picture>
+{{- end -}}
+
+{{- if $hasCaption -}}
+  {{- with $caption -}}
+    <figcaption>{{ . | safeHTML }}</figcaption>
+  {{- end -}}
+</figure>
+{{- end -}}
