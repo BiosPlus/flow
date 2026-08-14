@@ -1,0 +1,48 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+.layout-wrapper {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  overflow: hidden;
+}
+
+header {
+  height: 44px;
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--surface);
+}
+
+nav {
+  /* Tag strip placeholder */
+  background-color: var(--surface);
+}
+
+.list-pane {
+  overflow-y: auto;
+  background-color: var(--surface);
+  border-right: 1px solid var(--rule);
+}
+
+.reading-pane {
+  overflow-y: auto;
+  view-transition-name: reading;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
