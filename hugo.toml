@@ -1,6 +1,7 @@
 baseURL = "/"
-languageCode = "en-au"
+locale = "en-au"
 title = "Your site title"
+publishDir = "build"
 
 themesDir = "theme"
 theme = "flow"
