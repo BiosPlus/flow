@@ -1,0 +1,28 @@
+:root {
+  --bg:          #17191c;  /* app background, reading pane */
+  --surface:     #1d2024;  /* message list, toolbar, tag strip */
+  --row-hover:   #23262b;
+  --row-current: #2b2f36;
+  --ink:         #e4e6e8;
+  --ink-soft:    #93999f;  /* dates, snippets, counts */
+  --rule:        #2c3036;  /* all hairlines */
+  --accent:      #c9484c;  /* current-tab underline, current-row edge, margin rule */
+  --focus:       #7fb3ff;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:          #fdfdf9;
+    --surface:     #f4f4ee;
+    --row-hover:   #ecece4;
+    --row-current: #e3e6ea;
+    --ink:         #16181a;
+    --ink-soft:    #63676b;
+    --rule:        #d9dce0;
+    --accent:      #b03c40;
+    --focus:       #1a56b8;
+  }
+}

@@ -1,38 +1,7 @@
 <!DOCTYPE html>
 <html class="k-{{ .Kind }}" lang="en-au">
 <head>
-  <meta charset="utf-8">
-  <title>{{ .Title }}</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      font-family: sans-serif;
-    }
-    .layout-wrapper {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-    .list-pane {
-      width: 350px;
-      border-right: 1px solid #ccc;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-    .reading-pane {
-      flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-    }
-    a.current-row {
-      background: #e3f2fd;
-      border-left: 4px solid #1976d2;
-    }
-  </style>
+  {{ partial "head.html" . }}
 </head>
 <body>
   <a href="#reading" style="position: absolute; left: -9999px;">Skip to content</a>
