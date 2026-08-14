@@ -1,0 +1,13 @@
+baseURL = "/"
+languageCode = "en-au"
+title = "Your site title"
+
+themesDir = "theme"
+theme = "flow"
+
+[taxonomies]
+  tag = "tags"
+
+[params]
+  description = "A short line about the site."
+  pinnedTags = ["thought", "tip"]
