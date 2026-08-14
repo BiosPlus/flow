@@ -1,0 +1,12 @@
+<a href="{{ .Page.RelPermalink }}" {{ if eq .Page .Current }}aria-current="page" class="current-row"{{ end }} style="display: block; padding: 0.5rem; border-bottom: 1px solid #ccc; color: inherit; text-decoration: none;">
+  <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #666;">
+    <span>{{ .Page.Date.Format "2 Jan 2006" }}</span>
+    {{ if .Page.ReadingTime }}<span>{{ .Page.ReadingTime }} min read</span>{{ end }}
+  </div>
+  <div style="font-weight: bold; margin: 0.2rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ .Page.Title }}</div>
+  <div style="display: flex; min-width: 0;">
+    <div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9em; color: #444;">
+      {{ .Page.Summary | plainify | truncate 110 }}
+    </div>
+  </div>
+</a>

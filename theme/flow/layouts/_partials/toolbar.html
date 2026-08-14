@@ -1,0 +1,30 @@
+<div class="toolbar" style="display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; padding: 0.5rem; background: #eee;">
+  <div class="toolbar-left">
+    <a href="/">{{ site.Title }}</a>
+  </div>
+  <div class="toolbar-right">
+    {{ $pages := "" }}
+    {{ if or .IsHome .IsPage }}
+      {{ $pages = where site.RegularPages "Section" "posts" }}
+    {{ else }}
+      {{ $pages = .Pages }}
+    {{ end }}
+    {{ $total := len $pages }}
+    <span>1 to {{ $total }} of {{ $total }}</span>
+    {{ if .IsPage }}
+      {{ $posts := where site.RegularPages "Section" "posts" }}
+      {{ $newer := $posts.Prev . }}
+      {{ $older := $posts.Next . }}
+      {{ if $newer }}
+        <a href="{{ $newer.RelPermalink }}">Newer</a>
+      {{ else }}
+        <a aria-disabled="true">Newer</a>
+      {{ end }}
+      {{ if $older }}
+        <a href="{{ $older.RelPermalink }}">Older</a>
+      {{ else }}
+        <a aria-disabled="true">Older</a>
+      {{ end }}
+    {{ end }}
+  </div>
+</div>
