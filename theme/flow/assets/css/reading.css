@@ -209,38 +209,6 @@ figcaption {
   text-decoration: underline;
 }
 
-.post-nav {
-  margin-top: 4rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--rule);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-}
-
-.post-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--focus);
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.15s ease;
-}
-
-.post-nav-btn:hover {
-  text-decoration: underline;
-}
-
-.post-nav-disabled {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink-soft);
-  opacity: 0.5;
-}
-
 .taxonomy-list {
   list-style: none;
   padding: 0;
