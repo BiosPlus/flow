@@ -8,8 +8,6 @@
 {{- $caption := .caption -}}
 {{- $class := .class -}}
 {{- $loading := .loading | default "lazy" -}}
-{{- $imgWidth := .width -}}
-{{- $imgHeight := .height -}}
 
 {{- $imageAssetPath := printf "images/%s" $src -}}
 {{- $image := resources.Get $imageAssetPath -}}

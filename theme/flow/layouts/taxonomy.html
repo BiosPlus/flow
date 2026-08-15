@@ -1,12 +1,12 @@
 {{ define "main" }}
-  <div style="padding: 2rem;">
-    <h1 style="margin-top: 0;">Tags</h1>
+  <div class="taxonomy-page">
+    <h1>Tags</h1>
     {{ $tags := site.Taxonomies.tags }}
-    <ul style="list-style: none; padding: 0;">
+    <ul class="tag-list">
       {{ range $tags.ByCount }}
-        <li style="margin-bottom: 0.5rem;">
-          <a href="{{ .Page.RelPermalink }}" style="color: var(--focus); text-decoration: none; font-weight: 500;">{{ .Term }}</a>
-          <span style="color: var(--ink-soft); font-size: 0.9em; margin-left: 0.5rem;">{{ .Count }}</span>
+        <li class="tag-list__item">
+          <a href="{{ .Page.RelPermalink }}" class="tag-list__link">{{ .Term }}</a>
+          <span class="tag-list__count">{{ .Count }}</span>
         </li>
       {{ end }}
     </ul>

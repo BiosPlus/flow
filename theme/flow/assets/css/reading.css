@@ -140,3 +140,80 @@ figcaption {
     display: inline-block;
   }
 }
+
+/* Reading empty state */
+.reading-empty {
+  text-align: center;
+  margin-top: 20vh;
+}
+
+.reading-empty__title {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+
+.reading-empty__desc,
+.reading-empty__count {
+  color: var(--ink-soft);
+  margin-bottom: 0.5rem;
+}
+
+/* Post navigation (older / newer) */
+.reading-nav {
+  margin-top: 4rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.reading-nav__link {
+  color: var(--focus);
+  text-decoration: none;
+}
+
+.reading-nav__link:hover {
+  text-decoration: underline;
+}
+
+.reading-nav__disabled {
+  color: var(--ink-soft);
+}
+
+/* Taxonomy / tags overview */
+.taxonomy-page {
+  padding: 2rem;
+}
+
+.taxonomy-page h1 {
+  margin-top: 0;
+}
+
+.tag-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tag-list__item {
+  margin-bottom: 0.5rem;
+}
+
+.tag-list__link {
+  color: var(--focus);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.tag-list__link:hover {
+  text-decoration: underline;
+}
+
+.tag-list__count {
+  color: var(--ink-soft);
+  font-size: 0.9em;
+  margin-left: 0.5rem;
+}

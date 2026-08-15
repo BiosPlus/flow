@@ -22,21 +22,21 @@
     {{ .Content }}
   </div>
 
-  <div style="margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font-size: 14px;">
+  <div class="reading-nav">
     {{ $posts := where site.RegularPages "Section" "posts" }}
     {{ $newer := $posts.Prev . }}
     {{ $older := $posts.Next . }}
 
     {{ if $older }}
-      <a href="{{ $older.RelPermalink }}" style="color: var(--focus); text-decoration: none;">&larr; Older</a>
+      <a href="{{ $older.RelPermalink }}" class="reading-nav__link">&larr; Older</a>
     {{ else }}
-      <span style="color: var(--ink-soft);">&larr; Older</span>
+      <span class="reading-nav__disabled">&larr; Older</span>
     {{ end }}
 
     {{ if $newer }}
-      <a href="{{ $newer.RelPermalink }}" style="color: var(--focus); text-decoration: none;">Newer &rarr;</a>
+      <a href="{{ $newer.RelPermalink }}" class="reading-nav__link">Newer &rarr;</a>
     {{ else }}
-      <span style="color: var(--ink-soft);">Newer &rarr;</span>
+      <span class="reading-nav__disabled">Newer &rarr;</span>
     {{ end }}
   </div>
 {{ end }}
