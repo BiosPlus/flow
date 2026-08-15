@@ -33,10 +33,12 @@ export PATH="${HOME}/bin:${PATH}"
 if ! command -v npx &> /dev/null; then
   echo "Node.js / npx not found. Installing Node.js LTS..."
   NODE_VERSION="v20.18.0"
+  NODE_CHECKSUM="4543670b589593f8fa5f106111fd5139081da42bb165a9239f05195e405f240a"
   mkdir -p "${HOME}/nodejs"
   mkdir -p /tmp/node
   cd /tmp/node
   wget -q "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz"
+  echo "${NODE_CHECKSUM}  node-${NODE_VERSION}-linux-x64.tar.xz" | sha256sum -c -
   tar -xJf "node-${NODE_VERSION}-linux-x64.tar.xz" --strip-components=1 -C "${HOME}/nodejs"
   export PATH="${HOME}/nodejs/bin:${PATH}"
 fi
