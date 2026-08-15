@@ -256,6 +256,9 @@
 
         // Reconnect infinite scroll for the newly populated list
         initInfiniteScroll();
+
+        // Dispatch event for search and other listeners
+        window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: tagUrl } }));
       }
     } catch (err) {
       console.warn('Failed to apply tag filter:', err);

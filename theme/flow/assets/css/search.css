@@ -1,33 +1,5 @@
 /* Material Design 3 Search Box Component Styles */
 
-.sub-bar {
-  display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
-  border-bottom: 1px solid var(--rule);
-  background-color: var(--surface);
-  min-height: 40px;
-}
-
-.search-pane {
-  border-right: 1px solid var(--rule);
-  padding: 5px 8px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.tag-pane {
-  min-width: 0;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-
-.tag-pane .tag-strip-container {
-  width: 100%;
-  border-bottom: none;
-}
-
 .search-box {
   position: relative;
   display: flex;

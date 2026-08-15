@@ -5,29 +5,42 @@
   const searchInput = document.getElementById('search-input');
   const searchClear = document.getElementById('search-clear');
   const searchShortcut = document.getElementById('search-shortcut');
-  const listItemsContainer = document.getElementById('message-list-items');
-  const listCount = document.getElementById('message-list-count');
-  const listPager = document.getElementById('message-list-pager');
 
-  if (!searchInput || !listItemsContainer || !listCount) {
+  if (!searchInput) {
     return;
+  }
+
+  function getListContainer() {
+    return document.getElementById('message-list-items');
+  }
+
+  function getListCount() {
+    return document.getElementById('message-list-count');
+  }
+
+  function getListPager() {
+    return document.getElementById('message-list-pager');
   }
 
   let pagefind = null;
   let pagefindLoading = null;
-  let originalListHtml = listItemsContainer.innerHTML;
-  let originalCountText = listCount.textContent;
-  let originalTotal = listCount.getAttribute('data-total') || '';
+  let originalListHtml = '';
+  let originalCountText = '';
+  let originalTotal = '';
   let debounceTimer = null;
   let currentSearchId = 0;
 
+  const fnvCache = Object.create(null);
   function fnv32a(str) {
+    if (fnvCache[str] !== undefined) return fnvCache[str];
     let hash = 0x811c9dc5;
     for (let i = 0; i < str.length; i++) {
       hash ^= str.charCodeAt(i);
       hash = Math.imul(hash, 0x01000193);
     }
-    return (hash >>> 0) % 8;
+    const res = (hash >>> 0) % 8;
+    fnvCache[str] = res;
+    return res;
   }
 
   function escapeHtml(str) {
@@ -39,6 +52,31 @@
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  function captureOriginalState() {
+    const container = getListContainer();
+    const count = getListCount();
+    if (container) {
+      originalListHtml = container.innerHTML;
+    }
+    if (count) {
+      originalCountText = count.textContent;
+      originalTotal = count.getAttribute('data-total') || '';
+    }
+  }
+
+  // Initial capture on load
+  captureOriginalState();
+
+  // Listen for tag filter updates from scroll-memory.js
+  window.addEventListener('flow:list-updated', () => {
+    if (searchInput && searchInput.value) {
+      searchInput.value = '';
+      if (searchClear) searchClear.hidden = true;
+      if (searchShortcut) searchShortcut.style.display = '';
+    }
+    captureOriginalState();
+  });
 
   async function loadPagefind() {
     if (pagefind) return pagefind;
@@ -64,9 +102,17 @@
   }
 
   function resetSearch() {
-    listItemsContainer.innerHTML = originalListHtml;
-    listCount.textContent = originalCountText;
-    if (listPager) listPager.style.display = '';
+    const container = getListContainer();
+    const count = getListCount();
+    const pager = getListPager();
+
+    if (container && originalListHtml) {
+      container.innerHTML = originalListHtml;
+    }
+    if (count && originalCountText) {
+      count.textContent = originalCountText;
+    }
+    if (pager) pager.style.display = '';
     if (searchClear) searchClear.hidden = true;
     if (searchShortcut) searchShortcut.style.display = '';
   }
@@ -124,22 +170,30 @@
       return;
     }
 
+    const container = getListContainer();
+    const count = getListCount();
+    const pager = getListPager();
+
     if (searchClear) searchClear.hidden = false;
     if (searchShortcut) searchShortcut.style.display = 'none';
-    if (listPager) listPager.style.display = 'none';
+    if (pager) pager.style.display = 'none';
 
     const pf = await loadPagefind();
 
     if (searchId !== currentSearchId) return;
 
     if (!pf) {
-      listItemsContainer.innerHTML = `
-        <div class="search-empty-state">
-          <div>Search index is not built yet.</div>
-          <div class="search-empty-hint">Run <code>npx pagefind --site build</code> to generate the search index.</div>
-        </div>
-      `;
-      listCount.textContent = `0 results for "${cleanQuery}"`;
+      if (container) {
+        container.innerHTML = `
+          <div class="search-empty-state">
+            <div>Search index is not built yet.</div>
+            <div class="search-empty-hint">Run <code>npx pagefind --site build</code> to generate the search index.</div>
+          </div>
+        `;
+      }
+      if (count) {
+        count.textContent = `0 results for "${cleanQuery}"`;
+      }
       return;
     }
 
@@ -148,12 +202,16 @@
       if (searchId !== currentSearchId) return;
 
       if (!search.results || search.results.length === 0) {
-        listItemsContainer.innerHTML = `
-          <div class="search-empty-state">
-            <div>No posts matching "<strong>${escapeHtml(cleanQuery)}</strong>"</div>
-          </div>
-        `;
-        listCount.textContent = `0 of ${originalTotal || '0'} results`;
+        if (container) {
+          container.innerHTML = `
+            <div class="search-empty-state">
+              <div>No posts matching "<strong>${escapeHtml(cleanQuery)}</strong>"</div>
+            </div>
+          `;
+        }
+        if (count) {
+          count.textContent = `0 of ${originalTotal || '0'} results`;
+        }
         return;
       }
 
@@ -161,12 +219,16 @@
       const dataResults = await Promise.all(search.results.slice(0, 50).map(r => r.data()));
       if (searchId !== currentSearchId) return;
 
-      listCount.textContent = `1 to ${dataResults.length} of ${dataResults.length} results`;
-      listItemsContainer.innerHTML = dataResults.map(renderResultRow).join('');
+      if (count) {
+        count.textContent = `1 to ${dataResults.length} of ${dataResults.length} results`;
+      }
+      if (container) {
+        container.innerHTML = dataResults.map(renderResultRow).join('');
+      }
     } catch (err) {
       console.error('[Pagefind] Search error:', err);
-      if (searchId === currentSearchId) {
-        listItemsContainer.innerHTML = `
+      if (searchId === currentSearchId && container) {
+        container.innerHTML = `
           <div class="search-empty-state">
             <div>Error executing search.</div>
           </div>
@@ -204,7 +266,8 @@
       resetSearch();
       searchInput.blur();
     } else if (e.key === 'Enter') {
-      const firstResult = listItemsContainer.querySelector('.message-row');
+      const container = getListContainer();
+      const firstResult = container ? container.querySelector('.message-row') : null;
       if (firstResult && firstResult.href) {
         window.location.href = firstResult.href;
       }

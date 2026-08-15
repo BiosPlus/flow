@@ -1,4 +1,6 @@
 :root {
+  color-scheme: dark;
+
   /* AMOLED Pure Black Base & M3 Tonal Surface System (Dark Mode Default) */
   --bg:                        #000000;  /* Pure AMOLED black canvas, reading pane */
   --surface:                   #0c0e12;  /* M3 Surface Container Low: list pane, toolbar, sub-bar */
@@ -39,6 +41,7 @@
 
 @media (prefers-color-scheme: light) {
   :root {
+    color-scheme: light;
     --bg:                        #fbfdf9;  /* M3 Surface / Background */
     --surface:                   #f0f3f0;  /* M3 Surface Container Low */
     --surface-container:         #eaeeea;  /* M3 Surface Container */
