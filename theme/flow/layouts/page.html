@@ -25,23 +25,23 @@
     </div>
   </article>
 
-  <div style="margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font-size: 14px;" data-pagefind-ignore>
+  <nav class="post-nav" aria-label="Post pagination" data-pagefind-ignore>
     {{ $posts := where site.RegularPages "Section" "posts" }}
     {{ $newer := $posts.Prev . }}
     {{ $older := $posts.Next . }}
 
     {{ if $older }}
-      <a href="{{ $older.RelPermalink }}" style="color: var(--focus); text-decoration: none;">&larr; Older</a>
+      <a href="{{ $older.RelPermalink }}" class="post-nav-btn">&larr; Older</a>
     {{ else }}
-      <span style="color: var(--ink-soft);">&larr; Older</span>
+      <span class="post-nav-disabled">&larr; Older</span>
     {{ end }}
 
     {{ if $newer }}
-      <a href="{{ $newer.RelPermalink }}" style="color: var(--focus); text-decoration: none;">Newer &rarr;</a>
+      <a href="{{ $newer.RelPermalink }}" class="post-nav-btn">Newer &rarr;</a>
     {{ else }}
-      <span style="color: var(--ink-soft);">Newer &rarr;</span>
+      <span class="post-nav-disabled">Newer &rarr;</span>
     {{ end }}
-  </div>
+  </nav>
 {{ end }}
 
 {{ define "message-list" }}
