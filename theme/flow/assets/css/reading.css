@@ -13,6 +13,7 @@ h1 {
   color: var(--ink);
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  text-wrap: balance;
 }
 
 .reading-meta {
@@ -40,6 +41,7 @@ h1 {
   color: var(--ink);
   line-height: 1.75;
   letter-spacing: -0.005em;
+  text-wrap: pretty;
 }
 
 .reading__body h2 {
@@ -49,6 +51,7 @@ h1 {
   color: var(--ink);
   margin-top: 2rem;
   margin-bottom: 0.75rem;
+  text-wrap: balance;
 }
 
 .reading__body h3 {
@@ -58,6 +61,7 @@ h1 {
   color: var(--ink);
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
+  text-wrap: balance;
 }
 
 .reading__body {
@@ -108,6 +112,7 @@ blockquote {
   background: var(--surface);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--ink);
+  text-wrap: pretty;
 }
 
 blockquote p {

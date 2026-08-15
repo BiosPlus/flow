@@ -1,5 +1,10 @@
 <meta charset="utf-8">
-<title>{{ .Title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if .IsHome }}{{ site.Title }}{{ with site.Params.description }} — {{ . }}{{ end }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
+{{ $desc := .Description | default .Summary | default site.Params.description }}
+{{ with $desc }}
+<meta name="description" content="{{ . | plainify | truncate 160 }}">
+{{ end }}
 
 {{ $opts := dict
   "minify" hugo.IsProduction
@@ -17,3 +22,4 @@
 {{ with resources.Get "js/search.js" | js.Build | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
+

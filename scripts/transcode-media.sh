@@ -38,7 +38,7 @@ fi
 
 # 1. Transcode PNG / JPG / JPEG / TIFF to JXL
 if [ "$HAS_CJXL" = true ]; then
-  find "${IMAGES_DIR}" -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.tif" -o -iname "*.tiff" \) | while read -r src; do
+  find "${IMAGES_DIR}" -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.tif" -o -iname "*.tiff" \) -print0 | while IFS= read -r -d '' src; do
     dir="$(dirname "$src")"
     filename="$(basename "$src")"
     base="${filename%.*}"
@@ -54,7 +54,7 @@ fi
 
 # 2. Transcode GIF to WebM
 if [ "$HAS_FFMPEG" = true ]; then
-  find "${IMAGES_DIR}" -type f -iname "*.gif" | while read -r src; do
+  find "${IMAGES_DIR}" -type f -iname "*.gif" -print0 | while IFS= read -r -d '' src; do
     dir="$(dirname "$src")"
     filename="$(basename "$src")"
     base="${filename%.*}"
