@@ -9,7 +9,7 @@
         <span> · </span>
         {{- range $i, $tag := .Params.tags -}}
           {{- if $i }} · {{ end -}}
-          <a href="{{ "/tags/" | relLangURL }}{{ $tag | urlize }}/" data-pagefind-filter="tag">{{ $tag }}</a>
+          <a href="{{ "/tags/" | relLangURL }}{{ $tag | urlize }}/" class="reading-meta-tag" data-pagefind-filter="tag">{{ $tag }}</a>
         {{- end -}}
       {{- end -}}
     </div>
@@ -45,6 +45,53 @@
 {{ end }}
 
 {{ define "message-list" }}
-  {{ $pages := where site.RegularPages "Section" "posts" }}
-  {{ partial "message-list.html" (dict "Pages" $pages "Current" .) }}
+  {{ $allPosts := where site.RegularPages "Section" "posts" }}
+  {{ $total := len $allPosts }}
+  {{ $pagerSize := site.Params.pagerSize | default site.Params.paginate | default 25 }}
+
+  {{ $currentIdx := 0 }}
+  {{ range $idx, $p := $allPosts }}
+    {{ if eq $p.RelPermalink $.RelPermalink }}
+      {{ $currentIdx = $idx }}
+    {{ end }}
+  {{ end }}
+
+  {{ $pageNumber := int (add (math.Floor (div (float $currentIdx) (float $pagerSize))) 1) }}
+  {{ $startIdx := mul (sub $pageNumber 1) $pagerSize }}
+  {{ $endIdx := $total }}
+  {{ if lt (add $startIdx $pagerSize) $total }}
+    {{ $endIdx = add $startIdx $pagerSize }}
+  {{ end }}
+
+  {{ $pagePosts := slice }}
+  {{ range $idx, $p := $allPosts }}
+    {{ if and (ge $idx $startIdx) (lt $idx $endIdx) }}
+      {{ $pagePosts = $pagePosts | append $p }}
+    {{ end }}
+  {{ end }}
+
+  {{ $firstNum := 0 }}
+  {{ $lastNum := 0 }}
+  {{ if gt $total 0 }}
+    {{ $firstNum = add $startIdx 1 }}
+    {{ $lastNum = $endIdx }}
+  {{ end }}
+
+  {{ $prevPageUrl := "" }}
+  {{ if gt $pageNumber 1 }}
+    {{ if eq (sub $pageNumber 1) 1 }}
+      {{ $prevPageUrl = "/" }}
+    {{ else }}
+      {{ $prevPageUrl = printf "/page/%d/" (sub $pageNumber 1) }}
+    {{ end }}
+  {{ end }}
+
+  {{ $totalPages := int (math.Ceil (div (float $total) (float $pagerSize))) }}
+  {{ $nextPageUrl := "" }}
+  {{ if lt $pageNumber $totalPages }}
+    {{ $nextPageUrl = printf "/page/%d/" (add $pageNumber 1) }}
+  {{ end }}
+
+  {{ $pagination := dict "FirstNum" $firstNum "LastNum" $lastNum "Total" $total "PrevURL" $prevPageUrl "NextURL" $nextPageUrl }}
+  {{ partial "message-list.html" (dict "Pages" $pagePosts "Current" . "Pagination" $pagination) }}
 {{ end }}

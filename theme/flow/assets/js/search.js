@@ -7,6 +7,7 @@
   const searchShortcut = document.getElementById('search-shortcut');
   const listItemsContainer = document.getElementById('message-list-items');
   const listCount = document.getElementById('message-list-count');
+  const listPager = document.getElementById('message-list-pager');
 
   if (!searchInput || !listItemsContainer || !listCount) {
     return;
@@ -65,6 +66,7 @@
   function resetSearch() {
     listItemsContainer.innerHTML = originalListHtml;
     listCount.textContent = originalCountText;
+    if (listPager) listPager.style.display = '';
     if (searchClear) searchClear.hidden = true;
     if (searchShortcut) searchShortcut.style.display = '';
   }
@@ -124,6 +126,7 @@
 
     if (searchClear) searchClear.hidden = false;
     if (searchShortcut) searchShortcut.style.display = 'none';
+    if (listPager) listPager.style.display = 'none';
 
     const pf = await loadPagefind();
 
