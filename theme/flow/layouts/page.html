@@ -45,12 +45,7 @@
     {{ $endIdx = add $startIdx $pagerSize }}
   {{ end }}
 
-  {{ $pagePosts := slice }}
-  {{ range $idx, $p := $allPosts }}
-    {{ if and (ge $idx $startIdx) (lt $idx $endIdx) }}
-      {{ $pagePosts = $pagePosts | append $p }}
-    {{ end }}
-  {{ end }}
+  {{ $pagePosts := $allPosts | after $startIdx | first (sub $endIdx $startIdx) }}
 
   {{ $firstNum := 0 }}
   {{ $lastNum := 0 }}
