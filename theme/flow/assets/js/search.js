@@ -173,8 +173,13 @@
     const rowClass = isCurrent ? 'current-row message-row' : 'message-row';
     const ariaCurrent = isCurrent ? ' aria-current="page"' : '';
 
-    const dateStr = item.meta && item.meta.date ? escapeHtml(item.meta.date) : '';
-    const readTimeStr = item.meta && item.meta.readingTime ? `${escapeHtml(item.meta.readingTime)}` : '';
+    let readTimeStr = item.meta && item.meta.readingTime ? escapeHtml(item.meta.readingTime) : '';
+    if (readTimeStr && !readTimeStr.includes('min read')) {
+      readTimeStr += ' min read';
+    }
+    const readTimeHtml = readTimeStr
+      ? `<span class="row-read-time">${readTimeStr}</span>`
+      : '<span></span>';
     const titleStr = item.meta && item.meta.title ? escapeHtml(item.meta.title) : 'Untitled';
     const snippetHtml = item.excerpt || (item.meta && item.meta.summary ? escapeHtml(item.meta.summary) : '');
 
@@ -191,15 +196,15 @@
 
     return `
       <a href="${item.url}" class="${rowClass}"${ariaCurrent}>
-        <div class="row-meta">
-          <span>${dateStr}</span>
-          ${readTimeStr ? `<span>${readTimeStr}</span>` : ''}
+        <div class="row-header">
+          <div class="row-subject">${titleStr}</div>
+          ${dateStr ? `<span class="row-date">${dateStr}</span>` : ''}
         </div>
-        <div class="row-subject">${titleStr}</div>
-        <div class="row-snippet-container">
-          <div class="row-snippet">
-            ${snippetHtml}
-          </div>
+        <div class="row-snippet">
+          ${snippetHtml}
+        </div>
+        <div class="row-footer">
+          ${readTimeHtml}
           ${tagsHtml}
         </div>
       </a>

@@ -24,7 +24,7 @@ body {
 .layout-wrapper {
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: minmax(450px, 570px) 1fr;
   overflow: hidden;
 }
 
@@ -156,7 +156,7 @@ header {
    ---------------------------------------------------------------------------- */
 .sub-bar {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: minmax(450px, 570px) 1fr;
   border-bottom: 1px solid var(--rule);
   background-color: var(--surface);
   min-height: 40px;
