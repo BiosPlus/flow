@@ -10,38 +10,73 @@
 {{- $loading := .loading | default "lazy" -}}
 {{- $imgWidth := .width -}}
 {{- $imgHeight := .height -}}
+{{- $quality := .quality | default "75" -}}
 
-{{- $imageAssetPath := printf "images/%s" $src -}}
-{{- $image := resources.Get $imageAssetPath -}}
+{{- $cleanSrc := strings.TrimPrefix "/" $src -}}
+{{- $cleanSrc = strings.TrimPrefix "images/" $cleanSrc -}}
+{{- $imageAssetPath := printf "images/%s" $cleanSrc -}}
+{{- $resource := resources.Get $imageAssetPath -}}
 
-{{- if not $image -}}
+{{- if not $resource -}}
   {{- errorf "image-processor: Image '%s' not found in 'assets/images/'. Full path attempted: '%s'" $src $imageAssetPath -}}
   {{- return -}}
 {{- end -}}
 
-{{- $isGif := eq $image.MediaType.SubType "gif" -}}
-
+{{- $basePath := replaceRE `\.[^.]+$` "" $imageAssetPath -}}
+{{- $ext := lower (replaceRE `^.*\.` "" $cleanSrc) -}}
+{{- $isGif := or (eq $ext "gif") (eq $resource.MediaType.SubType "gif") -}}
+{{- $isWebm := or (eq $ext "webm") (eq $resource.MediaType.SubType "webm") -}}
 {{- $hasCaption := or $caption $class -}}
 
 {{- if $hasCaption -}}
 <figure{{ with $class }} class="{{ . }}"{{ end }}>
 {{- end -}}
 
-{{- if $isGif -}}
-  <img src="{{ $image.RelPermalink }}" alt="{{ $alt }}" width="{{ $image.Width }}" height="{{ $image.Height }}" loading="{{ $loading }}" decoding="async">
-{{- else -}}
-  {{- $quality := .quality | default "75" -}}
-  {{- /* Need to process AVIF and WebP */ -}}
-  {{- $avifProcessOpt := printf "avif q%s" $quality -}}
-  {{- $webpProcessOpt := printf "webp q%s" $quality -}}
+{{- if or $isGif $isWebm -}}
+  {{- /* Animated GIF / WebM handling */ -}}
+  {{- $webmResource := resources.Get (printf "%s.webm" $basePath) -}}
+  {{- $gifResource := resources.Get (printf "%s.gif" $basePath) -}}
+  {{- $fallbackResource := or $gifResource $resource -}}
+  {{- $w := or $imgWidth (and $fallbackResource $fallbackResource.Width) -}}
+  {{- $h := or $imgHeight (and $fallbackResource $fallbackResource.Height) -}}
 
-  {{- $avifImage := $image.Process $avifProcessOpt -}}
-  {{- $webpImage := $image.Process $webpProcessOpt -}}
-  <picture>
-    <source type="image/avif" srcset="{{ $avifImage.RelPermalink }}">
-    <source type="image/webp" srcset="{{ $webpImage.RelPermalink }}">
-    <img src="{{ $image.RelPermalink }}" alt="{{ $alt }}" width="{{ $image.Width }}" height="{{ $image.Height }}" loading="{{ $loading }}" decoding="async">
-  </picture>
+  {{- if $webmResource -}}
+    <video autoplay loop muted playsinline{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }}{{ if not $hasCaption }}{{ with $class }} class="{{ . }}"{{ end }}{{ end }} aria-label="{{ $alt }}">
+      <source src="{{ $webmResource.RelPermalink }}" type="video/webm">
+      {{- with $fallbackResource -}}
+        <img src="{{ .RelPermalink }}" alt="{{ $alt }}"{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }} loading="{{ $loading }}" decoding="async">
+      {{- end -}}
+    </video>
+  {{- else -}}
+    <img src="{{ $fallbackResource.RelPermalink }}" alt="{{ $alt }}"{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }}{{ if not $hasCaption }}{{ with $class }} class="{{ . }}"{{ end }}{{ end }} loading="{{ $loading }}" decoding="async">
+  {{- end -}}
+{{- else -}}
+  {{- /* Static image handling: JXL -> WebP failover -> Original fallback */ -}}
+  {{- $jxlResource := resources.Get (printf "%s.jxl" $basePath) -}}
+  {{- $w := or $imgWidth (and $resource.Width $resource.Width) -}}
+  {{- $h := or $imgHeight (and $resource.Height $resource.Height) -}}
+
+  {{- if eq $ext "jxl" -}}
+    {{- $webpResource := resources.Get (printf "%s.webp" $basePath) -}}
+    <picture>
+      <source type="image/jxl" srcset="{{ $resource.RelPermalink }}">
+      {{- with $webpResource -}}
+        <source type="image/webp" srcset="{{ .RelPermalink }}">
+      {{- end -}}
+      <img src="{{ $resource.RelPermalink }}" alt="{{ $alt }}"{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }}{{ if not $hasCaption }}{{ with $class }} class="{{ . }}"{{ end }}{{ end }} loading="{{ $loading }}" decoding="async">
+    </picture>
+  {{- else -}}
+    {{- $webpImage := $resource.Process (printf "webp q%s" $quality) -}}
+    <picture>
+      {{- with $jxlResource -}}
+        <source type="image/jxl" srcset="{{ .RelPermalink }}">
+      {{- end -}}
+      {{- with $webpImage -}}
+        <source type="image/webp" srcset="{{ .RelPermalink }}">
+      {{- end -}}
+      <img src="{{ $resource.RelPermalink }}" alt="{{ $alt }}"{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }}{{ if not $hasCaption }}{{ with $class }} class="{{ . }}"{{ end }}{{ end }} loading="{{ $loading }}" decoding="async">
+    </picture>
+  {{- end -}}
 {{- end -}}
 
 {{- if $hasCaption -}}
