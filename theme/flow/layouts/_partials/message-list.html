@@ -32,14 +32,14 @@
 {{ end }}
 
 <div class="message-list-header">
-  <span class="message-list-count" data-first="{{ $first }}" data-last="{{ $last }}" data-total="{{ $total }}">
+  <span class="message-list-count" id="message-list-count" data-first="{{ $first }}" data-last="{{ $last }}" data-total="{{ $total }}">
     {{ if gt $total 0 }}
       {{ $first }}–{{ $last }} of {{ $total }}
     {{ else }}
       0 of 0
     {{ end }}
   </span>
-  <div class="message-list-pager" aria-label="Pagination">
+  <div class="message-list-pager" id="message-list-pager" aria-label="Pagination">
     {{ if $prevURL }}
       <a href="{{ $prevURL }}" class="pager-btn" aria-label="Newer posts" title="Newer posts" data-pager="prev">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -60,7 +60,7 @@
     {{ end }}
   </div>
 </div>
-<div class="message-list-items" data-next-url="{{ $nextURL }}" data-prev-url="{{ $prevURL }}">
+<div class="message-list-items" id="message-list-items" data-next-url="{{ $nextURL }}" data-prev-url="{{ $prevURL }}">
   {{ range $pages }}
     {{ partial "message-row.html" (dict "Page" . "Current" $current) }}
   {{ end }}

@@ -1,11 +1,8 @@
 <meta charset="utf-8">
 <title>{{ .Title }}</title>
-{{ $light := css.ChromaStyles (dict "targetPath" "css/chroma-light.css" "style" "github" "mode" "light") }}
-{{ $dark  := css.ChromaStyles (dict "targetPath" "css/chroma-dark.css"  "style" "github" "mode" "dark") }}
 
 {{ $opts := dict
   "minify" hugo.IsProduction
-  "importContext" (slice $light $dark)
 }}
 
 {{ with resources.Get "css/main.css" | css.Build $opts }}
@@ -14,5 +11,9 @@
 {{ end }}
 
 {{ with resources.Get "js/scroll-memory.js" | js.Build | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
+
+{{ with resources.Get "js/search.js" | js.Build | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
