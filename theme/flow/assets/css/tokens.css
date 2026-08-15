@@ -7,9 +7,13 @@
   /* Default Color Scheme: Dark */
   color-scheme: dark;
 
+  /* Layout Dimensions */
+  --sidebar-width:             500px;    /* Desktop message list split-pane width */
+
   /* --------------------------------------------------------------------------
-     AMOLED Dark Mode: Pure Black Base & M3 Tonal Surface Elevations
-     -------------------------------------------------------------------------- */
+   AMOLED Dark Mode: Pure Black Base & M3 Tonal Surface Elevations
+   -------------------------------------------------------------------------- */
+
   --bg:                        #000000;  /* Pure AMOLED black canvas, reading pane */
   --surface:                   #0c0e12;  /* M3 Surface Container Low: list pane, toolbar, sub-bar */
   --surface-container:         #15171d;  /* M3 Surface Container: search box, card containers, code blocks */

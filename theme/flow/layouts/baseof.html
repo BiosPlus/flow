@@ -24,6 +24,7 @@
     <div class="search-pane">
       {{ partial "search-bar.html" . }}
     </div>
+    <div class="sub-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize sidebar (Double-click to reset)"></div>
     <nav class="tag-pane" aria-label="Tags">
       {{ partial "tag-strip.html" . }}
     </nav>
@@ -34,10 +35,12 @@
     <nav class="list-pane" aria-label="Message list" data-pagefind-ignore>
       {{ block "message-list" . }}{{ end }}
     </nav>
+    <div class="split-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize sidebar (Double-click to reset)"></div>
     <main id="reading" class="reading-pane">
       {{ block "main" . }}{{ end }}
     </main>
   </div>
+
 </body>
 </html>
 
