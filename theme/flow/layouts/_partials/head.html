@@ -27,6 +27,21 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{ end }}
 
+{{/* Instant sidebar width restoration before paint to eliminate layout shift */}}
+<script>
+  (function() {
+    try {
+      var w = localStorage.getItem('flow_sidebar_width');
+      if (w) {
+        var v = parseInt(w, 10);
+        if (!isNaN(v) && v >= 320 && v <= 1200) {
+          document.documentElement.style.setProperty('--sidebar-width', v + 'px');
+        }
+      }
+    } catch(e) {}
+  })();
+</script>
+
 {{/* Bundle, minify, and fingerprint scroll-memory.js */}}
 {{ with resources.Get "js/scroll-memory.js" | js.Build | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
@@ -36,5 +51,11 @@
 {{ with resources.Get "js/search.js" | js.Build | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
+
+{{/* Bundle, minify, and fingerprint resize.js */}}
+{{ with resources.Get "js/resize.js" | js.Build | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
+
 
 

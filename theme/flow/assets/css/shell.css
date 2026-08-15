@@ -24,8 +24,9 @@ body {
 .layout-wrapper {
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: var(--sidebar-width, 500px) 1fr;
   overflow: hidden;
+  position: relative;
 }
 
 /* Top Navigation Bar */
@@ -156,10 +157,11 @@ header {
    ---------------------------------------------------------------------------- */
 .sub-bar {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: var(--sidebar-width, 500px) 1fr;
   border-bottom: 1px solid var(--rule);
   background-color: var(--surface);
   min-height: 40px;
+  position: relative;
 }
 
 .search-pane {
@@ -168,6 +170,59 @@ header {
   display: flex;
   align-items: center;
   box-sizing: border-box;
+}
+
+/* ----------------------------------------------------------------------------
+   Split-Pane Drag-and-Drop Resizer Handles
+   ---------------------------------------------------------------------------- */
+.split-resizer,
+.sub-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--sidebar-width, 500px) - 5px);
+  width: 10px;
+  z-index: 25;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  background: transparent;
+}
+
+.split-resizer::after,
+.sub-resizer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background-color: var(--rule);
+  transition: background-color 0.15s ease, width 0.15s ease, transform 0.15s ease;
+}
+
+.split-resizer:hover::after,
+.sub-resizer:hover::after,
+.split-resizer:focus-visible::after,
+.sub-resizer:focus-visible::after,
+body.is-resizing .split-resizer::after,
+body.is-resizing .sub-resizer::after {
+  background-color: var(--accent);
+  width: 3px;
+  transform: translateX(-1px);
+}
+
+.split-resizer:focus-visible,
+.sub-resizer:focus-visible {
+  outline: none;
+}
+
+/* Global Resizing Lock & Feedback */
+body.is-resizing,
+body.is-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 .tag-pane {
@@ -297,6 +352,10 @@ header {
   html.k-page nav[aria-label="Tags"], html.k-page .tag-strip-container,
   html.k-page .list-pane {
     display: none;
+  }
+  .split-resizer,
+  .sub-resizer {
+    display: none !important;
   }
 }
 
