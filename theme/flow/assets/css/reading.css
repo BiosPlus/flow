@@ -67,7 +67,6 @@ h1 {
 .reading__body {
   border-left: 1px solid var(--accent);
   padding-left: 2rem;
-  max-width: 68ch;
 }
 
 .breakout {
@@ -194,7 +193,6 @@ figure.breakout {
 }
 
 figcaption {
-  max-width: 68ch;
   color: var(--ink-soft);
   font-size: 12px;
   margin-top: 0.5rem;
