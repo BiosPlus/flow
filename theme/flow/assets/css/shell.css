@@ -95,6 +95,12 @@ nav {
   overflow-y: auto;
   background-color: var(--surface);
   border-right: 1px solid var(--rule);
+  transition: opacity 0.12s ease;
+}
+
+.list-pane.is-filtering {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .reading-pane {

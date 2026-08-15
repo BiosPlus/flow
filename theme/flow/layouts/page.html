@@ -7,7 +7,7 @@
       <span> · </span>
       {{- range $i, $tag := .Params.tags -}}
         {{- if $i }} · {{ end -}}
-        <a href="{{ "/tags/" | relLangURL }}{{ $tag | urlize }}/">{{ $tag }}</a>
+        <a href="{{ "/tags/" | relLangURL }}{{ $tag | urlize }}/" class="reading-meta-tag">{{ $tag }}</a>
       {{- end -}}
     {{- end -}}
   </div>
