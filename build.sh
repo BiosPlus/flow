@@ -29,11 +29,28 @@ mv hugo "${HOME}/bin/"
 # Add the bin directory to PATH
 export PATH="${HOME}/bin:${PATH}"
 
-# Verify installation
+# Ensure Node.js and npx are available for Pagefind indexing
+if ! command -v npx &> /dev/null; then
+  echo "Node.js / npx not found. Installing Node.js LTS..."
+  NODE_VERSION="v20.18.0"
+  mkdir -p "${HOME}/nodejs"
+  mkdir -p /tmp/node
+  cd /tmp/node
+  wget -q "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz"
+  tar -xJf "node-${NODE_VERSION}-linux-x64.tar.xz" --strip-components=1 -C "${HOME}/nodejs"
+  export PATH="${HOME}/nodejs/bin:${PATH}"
+fi
+
+# Verify installations
 hugo version
+node -v
+npx -v
 
 # Return to project directory
 cd "$ORIGINAL_DIR"
 
 # Now you can add your Hugo build commands here
 hugo --gc --minify
+
+# Generate Pagefind search index
+npx -y pagefind --site build

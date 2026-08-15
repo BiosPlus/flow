@@ -56,6 +56,34 @@ nav {
 }
 
 /* Tag Strip */
+.sub-bar {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--surface);
+  min-height: 38px;
+}
+
+.search-pane {
+  border-right: 1px solid var(--rule);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.tag-pane {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.tag-pane .tag-strip-container {
+  width: 100%;
+  border-bottom: none;
+}
+
 .tag-strip-container {
   position: relative;
   border-bottom: 1px solid var(--rule);
@@ -139,9 +167,18 @@ nav {
     display: block;
     overflow: visible;
   }
+  .sub-bar {
+    display: block;
+  }
+  .search-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 6px 12px;
+  }
   html:not(.k-page) .reading-pane {
     display: none;
   }
+  html.k-page .sub-bar,
   html.k-page nav[aria-label="Tags"], html.k-page .tag-strip-container,
   html.k-page .list-pane {
     display: none;

@@ -2,9 +2,9 @@
 {{ $current := .Current }}
 {{ $total := len $pages }}
 <div class="message-list-header" style="padding: 0.5rem; background: var(--surface); border-bottom: 1px solid var(--rule);">
-  <span>1 to {{ $total }} of {{ $total }}</span>
+  <span id="message-list-count" data-total="{{ $total }}">1 to {{ $total }} of {{ $total }}</span>
 </div>
-<div class="message-list-items" style="overflow-y: auto;">
+<div class="message-list-items" id="message-list-items" style="overflow-y: auto;">
   {{ range $pages }}
     {{ partial "message-row.html" (dict "Page" . "Current" $current) }}
   {{ end }}
