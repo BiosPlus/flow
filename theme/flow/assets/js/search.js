@@ -95,18 +95,18 @@
     }
 
     const tagsHtml = tags.length > 0
-      ? `<div style="flex: 0 0 auto; display: flex; align-items: center;">${tags.map(renderChip).join('')}</div>`
+      ? `<div class="row-chips">${tags.map(renderChip).join('')}</div>`
       : '';
 
     return `
-      <a href="${item.url}" class="${rowClass}"${ariaCurrent} style="display: block; padding: 0.5rem; border-bottom: 1px solid var(--rule); color: inherit; text-decoration: none;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: var(--ink-soft);">
+      <a href="${item.url}" class="${rowClass}"${ariaCurrent}>
+        <div class="row-meta">
           <span>${dateStr}</span>
           ${readTimeStr ? `<span>${readTimeStr}</span>` : ''}
         </div>
-        <div style="font-weight: bold; margin: 0.2rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink);">${titleStr}</div>
-        <div style="display: flex; min-width: 0;">
-          <div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9em; color: var(--ink-soft);">
+        <div class="row-subject">${titleStr}</div>
+        <div class="row-snippet-container">
+          <div class="row-snippet">
             ${snippetHtml}
           </div>
           ${tagsHtml}

@@ -1,5 +1,7 @@
-<div style="text-align: center; margin-top: 20vh;">
-  <p style="font-weight: bold; margin-bottom: 0.5rem; font-size: 1.1em; color: var(--ink);">No post selected</p>
-  <p style="color: var(--ink-soft); margin-bottom: 0.5rem;">{{ site.Params.description }}</p>
-  <p style="color: var(--ink-soft);">{{ . }} posts. Pick one from the list.</p>
+<div class="empty-state">
+  <div class="empty-state-title">No post selected</div>
+  {{ if site.Params.description }}
+    <div class="empty-state-desc">{{ site.Params.description }}</div>
+  {{ end }}
+  <div class="empty-state-hint">{{ . }} posts. Pick one from the list.</div>
 </div>
