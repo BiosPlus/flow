@@ -1,12 +1,24 @@
+/* Material Design 3 Reading Pane Styles */
+
+.reading-pane {
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
 h1 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: var(--ink);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .reading-meta {
   font-size: 12px;
   font-weight: 400;
+  font-family: var(--font-mono);
   color: var(--ink-soft);
   margin-bottom: 2rem;
 }
@@ -14,31 +26,38 @@ h1 {
 .reading-meta a {
   color: inherit;
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .reading-meta a:hover {
+  color: var(--ink);
   text-decoration: underline;
 }
 
 .reading__body, .reading__body p {
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 400;
   color: var(--ink);
-  line-height: 1.7;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
 }
 
 .reading__body h2 {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
+  letter-spacing: -0.015em;
   color: var(--ink);
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
 }
 
 .reading__body h3 {
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--ink);
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .reading__body {
@@ -51,47 +70,84 @@ h1 {
   max-width: none;
   width: 100%;
   overflow-x: auto;
+  margin: 1.5rem 0;
 }
 
 .highlight {
   border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 12px 14px;
-  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  background: var(--surface-container);
+  box-shadow: var(--shadow-1);
   max-width: none;
   width: 100%;
   overflow-x: auto;
+  box-sizing: border-box;
 }
 
 .highlight code {
   font-family: var(--font-mono);
   font-size: 0.9em;
+  line-height: 1.5;
 }
 
 :not(pre) > code {
   font-family: var(--font-mono);
-  font-size: 0.9em;
-  background: var(--surface);
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
+  font-size: 0.88em;
+  background: var(--surface-container);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-xs);
 }
 
 blockquote {
-  border-left: 1px solid var(--rule);
-  margin-left: 0;
-  padding-left: 1rem;
-  color: var(--ink-soft);
+  border-left: 3px solid var(--accent);
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.25rem;
+  background: var(--surface);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--ink);
+}
+
+blockquote p {
+  margin: 0;
 }
 
 div[style*="padding-bottom: 56.25%"] {
   max-width: none;
   width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 div[style*="padding-bottom: 56.25%"] iframe {
   width: 100%;
   height: auto;
   border: 0;
+}
+
+.breakout table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: var(--surface-container);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.breakout table th,
+.breakout table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+
+.breakout table th {
+  background: var(--surface);
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .breakout table th:first-child,
@@ -103,14 +159,27 @@ div[style*="padding-bottom: 56.25%"] iframe {
   font-size: 13px;
   color: var(--ink-soft);
   margin-bottom: 2rem;
-}
-.toc a {
-  color: inherit;
+  padding: 0.75rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
 }
 
-img {
+.toc a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.toc a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+img, video {
   max-width: 100%;
   height: auto;
+  border-radius: var(--radius-sm);
 }
 
 figure.breakout {
@@ -128,92 +197,96 @@ figcaption {
 
 .back-to-list {
   display: none;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   margin-bottom: 1rem;
   color: var(--focus);
   text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
 }
 
-@media (max-width: 999px) {
-  .back-to-list {
-    display: inline-block;
-  }
+.back-to-list:hover {
+  text-decoration: underline;
 }
 
-/* Reading empty state */
-.reading-empty {
+.taxonomy-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.taxonomy-item {
+  margin: 0;
+}
+
+.taxonomy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  padding: 4px 10px;
+  background: var(--surface-container);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.taxonomy-link:hover {
+  background: var(--surface-container-high);
+  border-color: var(--focus);
+}
+
+.taxonomy-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.taxonomy-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
   text-align: center;
-  margin-top: 20vh;
+  padding: 2rem;
 }
 
-.reading-empty__title {
-  font-weight: bold;
-  font-size: 1.1em;
+.empty-state-title {
+  font-size: 1.15rem;
+  font-weight: 600;
   color: var(--ink);
   margin-bottom: 0.5rem;
 }
 
-.reading-empty__desc,
-.reading-empty__count {
+.empty-state-desc {
   color: var(--ink-soft);
+  font-size: 0.95rem;
   margin-bottom: 0.5rem;
+  max-width: 40ch;
 }
 
-/* Post navigation (older / newer) */
-.reading-nav {
-  margin-top: 4rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--rule);
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+.empty-state-hint {
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+  font-family: var(--font-mono);
 }
 
-.reading-nav__link {
-  color: var(--focus);
-  text-decoration: none;
-}
-
-.reading-nav__link:hover {
-  text-decoration: underline;
-}
-
-.reading-nav__disabled {
-  color: var(--ink-soft);
-}
-
-/* Taxonomy / tags overview */
-.taxonomy-page {
-  padding: 2rem;
-}
-
-.taxonomy-page h1 {
-  margin-top: 0;
-}
-
-.tag-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.tag-list__item {
-  margin-bottom: 0.5rem;
-}
-
-.tag-list__link {
-  color: var(--focus);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.tag-list__link:hover {
-  text-decoration: underline;
-}
-
-.tag-list__count {
-  color: var(--ink-soft);
-  font-size: 0.9em;
-  margin-left: 0.5rem;
+@media (max-width: 999px) {
+  .reading-pane {
+    padding: 1rem 1.25rem;
+  }
+  .back-to-list {
+    display: inline-block;
+  }
 }

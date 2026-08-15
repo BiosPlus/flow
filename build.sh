@@ -29,11 +29,36 @@ mv hugo "${HOME}/bin/"
 # Add the bin directory to PATH
 export PATH="${HOME}/bin:${PATH}"
 
-# Verify installation
+# Ensure Node.js and npx are available for Pagefind indexing
+if ! command -v npx &> /dev/null; then
+  echo "Node.js / npx not found. Installing Node.js LTS..."
+  NODE_VERSION="v20.18.0"
+  NODE_CHECKSUM="4543670b589593f8fa5f106111fd5139081da42bb165a9239f05195e405f240a"
+  mkdir -p "${HOME}/nodejs"
+  mkdir -p /tmp/node
+  cd /tmp/node
+  wget -q "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz"
+  echo "${NODE_CHECKSUM}  node-${NODE_VERSION}-linux-x64.tar.xz" | sha256sum -c -
+  tar -xJf "node-${NODE_VERSION}-linux-x64.tar.xz" --strip-components=1 -C "${HOME}/nodejs"
+  export PATH="${HOME}/nodejs/bin:${PATH}"
+fi
+
+# Verify installations
 hugo version
+node -v
+npx -v
 
 # Return to project directory
 cd "$ORIGINAL_DIR"
 
-# Now you can add your Hugo build commands here
+# Transcode media assets at build time (JXL, WebM)
+if [ -f "./scripts/transcode-media.sh" ]; then
+  echo "Invoking media transcoding at build time..."
+  bash ./scripts/transcode-media.sh
+fi
+
+# Build static site
 hugo --gc --minify
+
+# Generate Pagefind search index
+npx -y pagefind --site build

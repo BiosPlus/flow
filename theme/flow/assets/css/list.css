@@ -1,10 +1,52 @@
 .message-list-header {
-  padding: 0.5rem 10px;
-  background-color: var(--surface);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--surface);
   border-bottom: 1px solid var(--rule);
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.message-list-count {
   font-size: 11.5px;
-  font-family: var(--font-mono);
+  font-weight: 500;
   color: var(--ink-soft);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.message-list-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface-container);
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.pager-btn:hover {
+  background: var(--surface-container-high);
+  color: var(--ink);
+  border-color: var(--ink-muted);
+}
+
+.pager-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
 }
 
 .message-list-items {
@@ -14,10 +56,15 @@
 .message-row {
   display: block;
   text-decoration: none;
-  min-height: 62px;
-  padding: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--rule);
   color: var(--ink);
+  content-visibility: auto;
+  contain-intrinsic-size: 0 64px;
+  transition: background-color 0.12s ease;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .message-row:hover {
@@ -32,26 +79,31 @@ a.current-row {
 .row-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 11.5px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--ink-soft);
   font-family: var(--font-mono);
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .row-subject {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--ink);
-  margin-bottom: 2px;
+  margin-bottom: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
-.row-preview {
+.row-snippet-container {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   min-width: 0;
+  gap: 8px;
 }
 
 .row-snippet {
@@ -62,10 +114,31 @@ a.current-row {
   font-size: 12px;
   font-weight: 400;
   color: var(--ink-soft);
+  line-height: 1.4;
 }
 
 .row-chips {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+}
+
+.infinite-scroll-sentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.infinite-scroll-status {
+  display: none;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.infinite-scroll-status.is-loading {
+  display: block;
 }

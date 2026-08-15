@@ -1,12 +1,14 @@
 {{ define "main" }}
-  <div class="taxonomy-page">
+  <div>
     <h1>Tags</h1>
     {{ $tags := site.Taxonomies.tags }}
-    <ul class="tag-list">
+    <ul class="taxonomy-list">
       {{ range $tags.ByCount }}
-        <li class="tag-list__item">
-          <a href="{{ .Page.RelPermalink }}" class="tag-list__link">{{ .Term }}</a>
-          <span class="tag-list__count">{{ .Count }}</span>
+        <li class="taxonomy-item">
+          <a href="{{ .Page.RelPermalink }}" class="taxonomy-link">
+            <span class="taxonomy-name">{{ .Term }}</span>
+            <span class="taxonomy-count">{{ .Count }}</span>
+          </a>
         </li>
       {{ end }}
     </ul>
@@ -14,5 +16,6 @@
 {{ end }}
 {{ define "message-list" }}
   {{ $pages := where site.RegularPages "Section" "posts" }}
-  {{ partial "message-list.html" (dict "Pages" $pages "Current" .) }}
+  {{ $paginator := .Paginate $pages }}
+  {{ partial "message-list.html" (dict "Pages" $paginator.Pages "Current" . "Paginator" $paginator) }}
 {{ end }}

@@ -5,14 +5,19 @@
 </head>
 <body>
   <a href="#reading" class="skip-link">Skip to content</a>
-  <header aria-label="Site title and pagination">
+  <header aria-label="Site title and pagination" data-pagefind-ignore>
     {{ partial "toolbar.html" . }}
   </header>
-  <nav aria-label="Tags">
-    {{ partial "tag-strip.html" . }}
-  </nav>
+  <div class="sub-bar" data-pagefind-ignore>
+    <div class="search-pane">
+      {{ partial "search-bar.html" . }}
+    </div>
+    <nav class="tag-pane" aria-label="Tags">
+      {{ partial "tag-strip.html" . }}
+    </nav>
+  </div>
   <div class="layout-wrapper">
-    <nav class="list-pane" aria-label="Message list">
+    <nav class="list-pane" aria-label="Message list" data-pagefind-ignore>
       {{ block "message-list" . }}{{ end }}
     </nav>
     <main id="reading" class="reading-pane">

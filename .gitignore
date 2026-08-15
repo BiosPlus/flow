@@ -7,3 +7,5 @@ resources/
 .DS_Store
 Thumbs.db
 build/
+static/pagefind/
+.pagefind/

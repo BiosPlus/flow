@@ -1,29 +1,39 @@
 <div class="toolbar">
   <div class="toolbar-left">
-    <a href="/">{{ site.Title }}</a>
+    <a href="/" class="toolbar-title">{{ site.Title }}</a>
   </div>
   <div class="toolbar-right">
-    {{ $pages := "" }}
-    {{ if or .IsHome .IsPage }}
-      {{ $pages = where site.RegularPages "Section" "posts" }}
-    {{ else }}
-      {{ $pages = .Pages }}
-    {{ end }}
-    {{ $total := len $pages }}
-    <span>1 to {{ $total }} of {{ $total }}</span>
     {{ if .IsPage }}
       {{ $posts := where site.RegularPages "Section" "posts" }}
-      {{ $newer := $posts.Prev . }}
-      {{ $older := $posts.Next . }}
-      {{ if $newer }}
-        <a href="{{ $newer.RelPermalink }}">Newer</a>
-      {{ else }}
-        <a aria-disabled="true">Newer</a>
-      {{ end }}
-      {{ if $older }}
-        <a href="{{ $older.RelPermalink }}">Older</a>
-      {{ else }}
-        <a aria-disabled="true">Older</a>
+      {{ $newer := $posts.Next . }}
+      {{ $older := $posts.Prev . }}
+      <nav class="toolbar-nav" aria-label="Post navigation">
+        {{ if $newer }}
+          <a href="{{ $newer.RelPermalink }}" class="toolbar-btn" aria-label="Newer post" title="Newer post">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Newer</span>
+          </a>
+        {{ else }}
+          <span class="toolbar-btn disabled" aria-disabled="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Newer</span>
+          </span>
+        {{ end }}
+        {{ if $older }}
+          <a href="{{ $older.RelPermalink }}" class="toolbar-btn" aria-label="Older post" title="Older post">
+            <span>Older</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+        {{ else }}
+          <span class="toolbar-btn disabled" aria-disabled="true">
+            <span>Older</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span>
+        {{ end }}
+      </nav>
+    {{ else }}
+      {{ if site.Params.description }}
+        <span class="toolbar-desc">{{ site.Params.description }}</span>
       {{ end }}
     {{ end }}
   </div>

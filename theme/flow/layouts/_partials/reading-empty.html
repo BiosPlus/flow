@@ -1,5 +1,7 @@
-<div class="reading-empty">
-  <p class="reading-empty__title">No post selected</p>
-  <p class="reading-empty__desc">{{ site.Params.description }}</p>
-  <p class="reading-empty__count">{{ . }} posts. Pick one from the list.</p>
+<div class="empty-state">
+  <div class="empty-state-title">No post selected</div>
+  {{ if site.Params.description }}
+    <div class="empty-state-desc">{{ site.Params.description }}</div>
+  {{ end }}
+  <div class="empty-state-hint">{{ . }} posts. Pick one from the list.</div>
 </div>

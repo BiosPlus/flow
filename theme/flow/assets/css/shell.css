@@ -7,6 +7,8 @@ body {
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .layout-wrapper {
@@ -17,9 +19,81 @@ body {
 }
 
 header {
-  height: 44px;
+  height: 46px;
   border-bottom: 1px solid var(--rule);
   background-color: var(--surface);
+  z-index: 10;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.toolbar-title:hover {
+  opacity: 0.85;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolbar-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface-container);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  color: var(--ink);
+  background: var(--surface-container-high);
+  border-color: var(--ink-muted);
+}
+
+.toolbar-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+
+.toolbar-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
 }
 
 .toolbar {
@@ -68,10 +142,17 @@ nav {
   overflow-y: auto;
   background-color: var(--surface);
   border-right: 1px solid var(--rule);
+  transition: opacity 0.12s ease;
+}
+
+.list-pane.is-filtering {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .reading-pane {
   overflow-y: auto;
+  background-color: var(--bg);
   view-transition-name: reading;
 }
 
@@ -92,7 +173,35 @@ nav {
   outline-offset: 2px;
 }
 
-/* Tag Strip */
+/* Sub-bar (Search & Tag Strip) */
+.sub-bar {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  border-bottom: 1px solid var(--rule);
+  background-color: var(--surface);
+  min-height: 40px;
+}
+
+.search-pane {
+  border-right: 1px solid var(--rule);
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.tag-pane {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.tag-pane .tag-strip-container {
+  width: 100%;
+  border-bottom: none;
+}
+
 .tag-strip-container {
   position: relative;
   border-bottom: 1px solid var(--rule);
@@ -117,6 +226,7 @@ nav {
   scrollbar-width: none;
   flex-wrap: nowrap;
   padding: 0 1rem;
+  gap: 2px;
 }
 
 .tag-strip::-webkit-scrollbar {
@@ -126,11 +236,14 @@ nav {
 .tag-strip-item {
   color: var(--ink-soft);
   font-size: 12.5px;
+  font-weight: 500;
   text-decoration: none;
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   white-space: nowrap;
   border-bottom: 2px solid transparent;
   flex: 0 0 auto;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .tag-strip-item.current {
@@ -141,24 +254,29 @@ nav {
 
 .tag-strip-item:hover, .tag-strip-item:focus {
   background-color: var(--row-hover);
+  color: var(--ink);
 }
 
 .tag-count {
-  opacity: 0.7;
-  font-size: 0.9em;
+  opacity: 0.75;
+  font-size: 0.88em;
+  font-family: var(--font-mono);
+  margin-left: 2px;
 }
 
 .skip-link {
   position: absolute;
   top: -9999px;
   left: -9999px;
-  background: var(--surface);
+  background: var(--surface-container-highest);
   color: var(--ink);
   padding: 8px 16px;
   z-index: 100;
   text-decoration: none;
   font-weight: 600;
   border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-2);
 }
 
 .skip-link:focus {
@@ -176,9 +294,18 @@ nav {
     display: block;
     overflow: visible;
   }
+  .sub-bar {
+    display: block;
+  }
+  .search-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 6px 12px;
+  }
   html:not(.k-page) .reading-pane {
     display: none;
   }
+  html.k-page .sub-bar,
   html.k-page nav[aria-label="Tags"], html.k-page .tag-strip-container,
   html.k-page .list-pane {
     display: none;
