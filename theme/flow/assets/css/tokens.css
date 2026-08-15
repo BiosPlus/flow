@@ -1,28 +1,67 @@
 :root {
-  --bg:          #17191c;  /* app background, reading pane */
-  --surface:     #1d2024;  /* message list, toolbar, tag strip */
-  --row-hover:   #23262b;
-  --row-current: #2b2f36;
-  --ink:         #e4e6e8;
-  --ink-soft:    #9aa0a6;  /* dates, snippets, counts (updated for dark contrast) */
-  --rule:        #2c3036;  /* all hairlines */
-  --accent:      #c9484c;  /* current-tab underline, current-row edge, margin rule */
-  --focus:       #7fb3ff;
+  /* AMOLED Pure Black Base & M3 Tonal Surface System (Dark Mode Default) */
+  --bg:                        #000000;  /* Pure AMOLED black canvas, reading pane */
+  --surface:                   #0c0e12;  /* M3 Surface Container Low: list pane, toolbar, sub-bar */
+  --surface-container:         #15171d;  /* M3 Surface Container: search box, card containers, code blocks */
+  --surface-container-high:    #1f222a;  /* M3 Surface Container High: hover states, popovers */
+  --surface-container-highest: #2a2e38;  /* M3 Surface Container Highest: active controls */
+  --surface-variant:           #1b1e24;  /* M3 Surface Variant */
 
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  --row-hover:                 #1a1d24;  /* List item hover */
+  --row-current:               #161922;  /* List item selected/current */
+
+  --ink:                       #f0f2f5;  /* High emphasis on-surface */
+  --ink-soft:                  #9ca3af;  /* Medium emphasis on-surface */
+  --ink-muted:                 #6b7280;  /* Low emphasis / captions */
+
+  --rule:                      #232730;  /* Hairlines, borders, dividers */
+  --rule-subtle:               rgba(255, 255, 255, 0.07);
+
+  --accent:                    #ff897d;  /* M3 Coral/Rose Primary Accent */
+  --accent-container:          #3d1416;  /* M3 Primary Container */
+  --on-accent-container:       #ffdad5;  /* M3 On Primary Container */
+  --focus:                     #a8c7fa;  /* M3 Focus Ring Indicator */
+
+  /* M3 Shape / Radius tokens */
+  --radius-xs:                 4px;
+  --radius-sm:                 6px;
+  --radius-md:                 10px;
+  --radius-lg:                 16px;
+  --radius-pill:               9999px;
+
+  /* M3 Elevation Shadows */
+  --shadow-1:                  0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2:                  0 3px 6px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.5);
+
+  --font:                      system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono:                 ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --bg:          #fdfdf9;
-    --surface:     #f4f4ee;
-    --row-hover:   #ecece4;
-    --row-current: #e3e6ea;
-    --ink:         #16181a;
-    --ink-soft:    #5f6368; /* (updated for light contrast) */
-    --rule:        #d9dce0;
-    --accent:      #b03c40;
-    --focus:       #1a56b8;
+    --bg:                        #fbfdf9;  /* M3 Surface / Background */
+    --surface:                   #f0f3f0;  /* M3 Surface Container Low */
+    --surface-container:         #eaeeea;  /* M3 Surface Container */
+    --surface-container-high:    #e4e8e4;  /* M3 Surface Container High */
+    --surface-container-highest: #dee3de;  /* M3 Surface Container Highest */
+    --surface-variant:           #dfe4de;
+
+    --row-hover:                 #e4e8e4;
+    --row-current:               #d7e3f8;
+
+    --ink:                       #191c1a;  /* High emphasis on-surface */
+    --ink-soft:                  #505650;  /* Medium emphasis */
+    --ink-muted:                 #717971;
+
+    --rule:                      #d0d5ce;
+    --rule-subtle:               rgba(0, 0, 0, 0.08);
+
+    --accent:                    #b3261e;  /* M3 Primary Light */
+    --accent-container:          #ffdad6;
+    --on-accent-container:       #410002;
+    --focus:                     #0b57d0;
+
+    --shadow-1:                  0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-2:                  0 3px 6px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
   }
 }

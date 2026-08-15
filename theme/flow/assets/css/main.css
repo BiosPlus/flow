@@ -3,6 +3,7 @@
 @import "list.css";
 @import "chips.css";
 @import "reading.css";
+@import "search.css";
 
 @import "chroma-light.css";
 @import "chroma-dark.css" (prefers-color-scheme: dark);

@@ -1,15 +1,15 @@
-<a href="{{ .Page.RelPermalink }}" {{ if eq .Page .Current }}aria-current="page" class="current-row message-row"{{ else }}class="message-row"{{ end }} style="display: block; padding: 0.5rem; border-bottom: 1px solid var(--rule); color: inherit; text-decoration: none;">
-  <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: var(--ink-soft);">
-    <span>{{ .Page.Date.Format "2 Jan 2006" }}</span>
+<a href="{{ .Page.RelPermalink }}" {{ if eq .Page .Current }}aria-current="page" class="current-row message-row"{{ else }}class="message-row"{{ end }}>
+  <div class="row-meta">
+    <span>{{ .Page.Date.Format "2006-01-02" }}</span>
     {{ if .Page.ReadingTime }}<span>{{ .Page.ReadingTime }} min read</span>{{ end }}
   </div>
-  <div style="font-weight: bold; margin: 0.2rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink);">{{ .Page.Title }}</div>
-  <div style="display: flex; min-width: 0;">
-    <div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9em; color: var(--ink-soft);">
+  <div class="row-subject">{{ .Page.Title }}</div>
+  <div class="row-snippet-container">
+    <div class="row-snippet">
       {{ .Page.Summary | plainify | truncate 110 }}
     </div>
     {{ if .Page.Params.tags }}
-      <div style="flex: 0 0 auto; display: flex; align-items: center;">
+      <div class="row-chips">
         {{ range .Page.Params.tags }}
           {{ partial "chip.html" . }}
         {{ end }}
