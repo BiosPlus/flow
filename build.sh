@@ -35,5 +35,11 @@ hugo version
 # Return to project directory
 cd "$ORIGINAL_DIR"
 
-# Now you can add your Hugo build commands here
+# Transcode media assets at build time (JXL, WebM)
+if [ -f "./scripts/transcode-media.sh" ]; then
+  echo "Invoking media transcoding at build time..."
+  bash ./scripts/transcode-media.sh
+fi
+
+# Build static site
 hugo --gc --minify

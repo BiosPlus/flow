@@ -1,11 +1,17 @@
 <meta charset="utf-8">
 <title>{{ .Title }}</title>
-{{ $light := css.ChromaStyles (dict "targetPath" "css/chroma-light.css" "style" "github" "mode" "light") }}
-{{ $dark  := css.ChromaStyles (dict "targetPath" "css/chroma-dark.css"  "style" "github" "mode" "dark") }}
+{{- $importContext := slice -}}
+{{- if hugo.IsExtended -}}
+  {{- if ge hugo.Version "0.165.0" -}}
+    {{- $light := css.ChromaStyles (dict "targetPath" "css/chroma-light.css" "style" "github" "mode" "light") -}}
+    {{- $dark  := css.ChromaStyles (dict "targetPath" "css/chroma-dark.css"  "style" "github" "mode" "dark") -}}
+    {{- $importContext = slice $light $dark -}}
+  {{- end -}}
+{{- end -}}
 
 {{ $opts := dict
   "minify" hugo.IsProduction
-  "importContext" (slice $light $dark)
+  "importContext" $importContext
 }}
 
 {{ with resources.Get "css/main.css" | css.Build $opts }}
