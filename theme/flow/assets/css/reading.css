@@ -125,3 +125,18 @@ figcaption {
   font-size: 12px;
   margin-top: 0.5rem;
 }
+
+.back-to-list {
+  display: none;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  color: var(--focus);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+@media (max-width: 999px) {
+  .back-to-list {
+    display: inline-block;
+  }
+}
