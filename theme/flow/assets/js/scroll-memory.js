@@ -1,4 +1,14 @@
+/**
+ * scroll-memory.js - Flow Theme Interaction & State Controller
+ *
+ * Core Responsibilities:
+ *  1. Scroll Memory: Persists sidebar scroll position across page navigation via sessionStorage.
+ *  2. Keyboard Traversal: Auto-scrolls tag strip items into view when focused via keyboard.
+ *  3. Seamless Infinite Scroll: Automatically loads subsequent post pages as reader scrolls down.
+ *  4. Client-Side Tag Filtering: Fetches and swaps the sidebar list dynamically when clicking tags.
+ */
 (function() {
+  // Session storage keys for state persistence
   const SCROLL_KEY = 'flow-list-scroll';
   const ACTIVE_TAG_KEY = 'flow-active-tag';
 
@@ -9,6 +19,11 @@
   let isInfiniteLoading = false;
   let isTagFiltering = false;
 
+  /**
+   * Normalizes a URL to a trailing-slash pathname for deterministic comparisons.
+   * @param {string} url - The URL or pathname string.
+   * @returns {string} Normalized pathname (e.g. "/tags/thought/").
+   */
   function normalizeUrl(url) {
     if (!url) return '/';
     try {
@@ -23,13 +38,20 @@
     }
   }
 
+  /**
+   * Parses an HTML string and extracts the innerHTML of `.list-pane`.
+   * @param {string} htmlString - Raw HTML fetched from server.
+   * @returns {string|null} Inner HTML of list pane, or null if not found.
+   */
   function extractListPane(htmlString) {
     const doc = new DOMParser().parseFromString(htmlString, 'text/html');
     const listPane = doc.querySelector('.list-pane');
     return listPane ? listPane.innerHTML : null;
   }
 
-  // Restore scroll position
+  /**
+   * Restores the sidebar message list scroll position from sessionStorage.
+   */
   function restoreScrollPosition() {
     const pane = document.querySelector('.list-pane');
     if (!pane) return;
@@ -39,7 +61,9 @@
     }
   }
 
-  // Save scroll position throttled
+  /**
+   * Throttles scroll position saves to sessionStorage using requestAnimationFrame.
+   */
   (function initScrollSaver() {
     const pane = document.querySelector('.list-pane');
     if (!pane) return;
@@ -56,7 +80,9 @@
     }, { passive: true });
   })();
 
-  // Keyboard traversal focus scrolling for tag strip
+  /**
+   * Ensures focused tag strip items scroll horizontally into view for keyboard users.
+   */
   (function initTagStripKeyboard() {
     const strip = document.querySelector('.tag-strip');
     if (!strip) return;
@@ -69,12 +95,15 @@
     });
   })();
 
-  // Seamless infinite scrolling for message list
+  /**
+   * Initializes infinite scrolling on the sidebar message list using IntersectionObserver.
+   */
   function initInfiniteScroll() {
     const listItems = document.querySelector('.message-list-items');
     const listPane = document.querySelector('.list-pane');
     if (!listItems || !listPane) return;
 
+    // Disconnect any existing observer before attaching a new one
     if (currentObserver) {
       currentObserver.disconnect();
       currentObserver = null;
@@ -90,6 +119,9 @@
 
     const currentPath = normalizeUrl(window.location.pathname);
 
+    /**
+     * Fetches the next page of posts and appends them to the message list.
+     */
     async function loadNextPage() {
       if (isInfiniteLoading || !nextUrl) return;
       isInfiniteLoading = true;
@@ -106,6 +138,7 @@
           Array.from(listItems.querySelectorAll('.message-row')).map(r => normalizeUrl(r.getAttribute('href')))
         );
 
+        // Append only non-duplicate rows
         newRows.forEach(row => {
           const href = normalizeUrl(row.getAttribute('href'));
           if (!existingHrefs.has(href)) {
@@ -122,12 +155,12 @@
           }
         });
 
-        // Update nextUrl from the fetched page
+        // Update nextUrl from the newly fetched page DOM
         const docItems = doc.querySelector('.message-list-items');
         nextUrl = docItems ? docItems.getAttribute('data-next-url') : null;
         listItems.setAttribute('data-next-url', nextUrl || '');
 
-        // Update header counter
+        // Update header post counter (e.g. "1–50 of 100")
         if (countEl) {
           const first = countEl.getAttribute('data-first') || '1';
           const total = countEl.getAttribute('data-total') || '';
@@ -137,7 +170,7 @@
           }
         }
 
-        // Update next button link / disabled state
+        // Update header next page button link / disabled state
         if (nextBtn) {
           if (nextUrl) {
             nextBtn.setAttribute('href', nextUrl);
@@ -157,6 +190,7 @@
       }
     }
 
+    // Attach IntersectionObserver to sentinel with a 200px pre-load threshold
     if ('IntersectionObserver' in window && sentinel) {
       currentObserver = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
@@ -168,6 +202,7 @@
       });
       currentObserver.observe(sentinel);
     } else {
+      // Fallback for environments without IntersectionObserver
       listPane.addEventListener('scroll', () => {
         if (listPane.scrollTop + listPane.clientHeight >= listPane.scrollHeight - 150) {
           loadNextPage();
@@ -176,7 +211,12 @@
     }
   }
 
-  // Dynamic Tag Filtering
+  /**
+   * Dynamically fetches and renders posts for a tag without full page reload.
+   * @param {string} rawTagUrl - Target tag URL.
+   * @param {object} [options] - Filtering options.
+   * @param {boolean} [options.resetScroll=true] - Whether to reset sidebar scroll to top.
+   */
   async function applyTagFilter(rawTagUrl, options = {}) {
     const { resetScroll = true } = options;
     const tagUrl = normalizeUrl(rawTagUrl);
@@ -211,7 +251,7 @@
           restoreScrollPosition();
         }
 
-        // Highlight current post in the list if present
+        // Highlight current post in the filtered list if present
         const currentPath = normalizeUrl(window.location.pathname);
         const rows = listPane.querySelectorAll('.message-row');
         rows.forEach(row => {
@@ -225,7 +265,7 @@
           }
         });
 
-        // Update active state in tag-strip
+        // Update active tab state in tag-strip
         if (tagStrip) {
           tagStrip.querySelectorAll('.tag-strip-item').forEach(item => {
             const itemHref = normalizeUrl(item.getAttribute('href'));
@@ -241,13 +281,13 @@
           });
         }
 
-        // Update mobile back-to-list href
+        // Update mobile back-to-list href to match active filter
         const backToList = document.querySelector('.back-to-list');
         if (backToList) {
           backToList.setAttribute('href', tagUrl === '/' ? '/' : tagUrl);
         }
 
-        // Update sessionStorage
+        // Persist active tag filter in sessionStorage
         if (tagUrl === '/' || tagUrl === '') {
           sessionStorage.removeItem(ACTIVE_TAG_KEY);
         } else {
@@ -257,7 +297,7 @@
         // Reconnect infinite scroll for the newly populated list
         initInfiniteScroll();
 
-        // Dispatch event for search and other listeners
+        // Dispatch notification event for search.js and external listeners
         window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: tagUrl } }));
       }
     } catch (err) {
@@ -268,13 +308,13 @@
     }
   }
 
-  // Intercept tag clicks
+  // Intercept tag clicks across tag strip and single post metadata
   document.addEventListener('click', (e) => {
     // 1. Tag strip items
     const tagStripItem = e.target.closest('.tag-strip-item');
     if (tagStripItem) {
       const href = tagStripItem.getAttribute('href');
-      // If it is "/tags/" (the all tags directory view), allow default navigation
+      // If it is "/tags/" (the all tags directory view), allow standard browser navigation
       if (href && normalizeUrl(href) === '/tags/') {
         return;
       }
@@ -297,7 +337,7 @@
     }
   });
 
-  // Initialization on DOMContentLoaded
+  // Initialization on DOM ready
   window.addEventListener('DOMContentLoaded', () => {
     const listPane = document.querySelector('.list-pane');
     if (!listPane) return;
@@ -317,13 +357,13 @@
       restoreScrollPosition();
       initInfiniteScroll();
     } else if (currentPath.startsWith('/tags/')) {
-      // Direct visit to a tag page
+      // Direct visit to a tag URL
       tagListCache.set(currentPath, listPane.innerHTML);
       sessionStorage.setItem(ACTIVE_TAG_KEY, currentPath);
       restoreScrollPosition();
       initInfiniteScroll();
     } else {
-      // Single post page
+      // Single post page: restore active tag filter if previously chosen
       const savedTag = sessionStorage.getItem(ACTIVE_TAG_KEY);
       if (savedTag) {
         applyTagFilter(savedTag, { resetScroll: false });
@@ -334,3 +374,4 @@
     }
   });
 })();
+

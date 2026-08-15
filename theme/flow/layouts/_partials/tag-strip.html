@@ -1,3 +1,13 @@
+{{/*
+  layouts/_partials/tag-strip.html
+  Sub-bar Horizontal Tag Selector Strip:
+  - Placed in the right column of the sub-bar above the reading pane.
+  - "all": Default tab showing all posts.
+  - Pinned Tags (`site.Params.pinnedTags`): Rendered first with their post counts.
+  - Remaining Tags: Rendered in descending order of post count.
+  - "all tags": Link to the full tag directory (/tags/).
+  - Supports keyboard focus auto-scrolling via `scroll-memory.js`.
+*/}}
 {{ $isAll := or (eq .Kind "home") (eq .Kind "section") (eq .Kind "page") }}
 
 {{ $currentTag := "" }}
@@ -7,6 +17,7 @@
 
 <div class="tag-strip-container">
   <div class="tag-strip">
+    {{/* "all" posts default tab */}}
     <a href="/" class="tag-strip-item {{ if $isAll }}current{{ end }}" {{ if $isAll }}aria-current="page"{{ end }}>
       all
     </a>
@@ -14,6 +25,7 @@
     {{ if site.Taxonomies.tags }}
       {{ $renderedTags := dict }}
 
+      {{/* Render pinned tags first */}}
       {{ if site.Params.pinnedTags }}
         {{ range site.Params.pinnedTags }}
           {{ $tagTaxonomy := index site.Taxonomies.tags . }}
@@ -27,6 +39,7 @@
         {{ end }}
       {{ end }}
 
+      {{/* Render remaining tags ordered by post count */}}
       {{ range site.Taxonomies.tags.ByCount }}
         {{ if not (index $renderedTags .Term) }}
           {{ $isCurrent := eq $currentTag (lower .Term) }}
@@ -36,6 +49,7 @@
         {{ end }}
       {{ end }}
 
+      {{/* Link to the complete taxonomy overview page */}}
       {{ $isAllTags := eq .Kind "taxonomy" }}
       <a href="/tags/" class="tag-strip-item {{ if $isAllTags }}current{{ end }}" {{ if $isAllTags }}aria-current="page"{{ end }}>
         all tags
@@ -43,3 +57,4 @@
     {{ end }}
   </div>
 </div>
+

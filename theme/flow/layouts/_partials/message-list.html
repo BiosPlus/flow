@@ -1,3 +1,10 @@
+{{/*
+  layouts/_partials/message-list.html
+  Left Sidebar Message List Component:
+  - Supports 3 pagination modes: Hugo .Paginator object, custom .Pagination dict, or unpaginated .Pages array.
+  - Header: Displays "X–Y of Z" post counter and newer/older pagination arrow buttons.
+  - Body: Renders individual message rows along with an infinite scroll sentinel and loading status indicator.
+*/}}
 {{ $pages := .Pages }}
 {{ $current := .Current }}
 {{ $total := 0 }}
@@ -6,7 +13,9 @@
 {{ $prevURL := "" }}
 {{ $nextURL := "" }}
 
+{{/* Extract pagination metadata based on the input context mode */}}
 {{ if .Paginator }}
+  {{/* Hugo native Paginator object (used on Home, Section, Term, Taxonomy) */}}
   {{ $p := .Paginator }}
   {{ $total = $p.TotalNumberOfElements }}
   {{ if gt $total 0 }}
@@ -17,12 +26,14 @@
   {{ with $p.Prev }}{{ $prevURL = .URL }}{{ end }}
   {{ with $p.Next }}{{ $nextURL = .URL }}{{ end }}
 {{ else if .Pagination }}
+  {{/* Custom pagination dictionary passed from single post view (page.html) */}}
   {{ $total = .Pagination.Total }}
   {{ $first = .Pagination.FirstNum }}
   {{ $last = .Pagination.LastNum }}
   {{ $prevURL = .Pagination.PrevURL }}
   {{ $nextURL = .Pagination.NextURL }}
 {{ else }}
+  {{/* Unpaginated fallback */}}
   {{ $total = len $pages }}
   {{ if gt $total 0 }}
     {{ $first = 1 }}
@@ -30,6 +41,7 @@
   {{ end }}
 {{ end }}
 
+{{/* List Header: Counter and Older/Newer pagination buttons */}}
 <div class="message-list-header">
   <span class="message-list-count" id="message-list-count" data-first="{{ $first }}" data-last="{{ $last }}" data-total="{{ $total }}">
     {{ if gt $total 0 }}
@@ -39,6 +51,7 @@
     {{ end }}
   </span>
   <div class="message-list-pager" id="message-list-pager" aria-label="Pagination">
+    {{/* Newer posts button (left chevron) */}}
     {{ if $prevURL }}
       <a href="{{ $prevURL }}" class="pager-btn" aria-label="Newer posts" title="Newer posts" data-pager="prev">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -48,6 +61,8 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </span>
     {{ end }}
+
+    {{/* Older posts button (right chevron) */}}
     {{ if $nextURL }}
       <a href="{{ $nextURL }}" class="pager-btn" aria-label="Older posts" title="Older posts" data-pager="next">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -59,10 +74,17 @@
     {{ end }}
   </div>
 </div>
+
+{{/* List Body: Rows container with pagination data attributes */}}
 <div class="message-list-items" id="message-list-items" data-next-url="{{ $nextURL }}" data-prev-url="{{ $prevURL }}">
   {{ range $pages }}
     {{ partial "message-row.html" (dict "Page" . "Current" $current) }}
   {{ end }}
+
+  {{/* Invisible sentinel element observed by IntersectionObserver for infinite scrolling */}}
   <div class="infinite-scroll-sentinel" aria-hidden="true"></div>
+
+  {{/* Visual loading feedback indicator during AJAX infinite scroll loads */}}
   <div class="infinite-scroll-status" aria-hidden="true">Loading older posts…</div>
 </div>
+

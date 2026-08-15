@@ -1,7 +1,15 @@
+{{/*
+  layouts/section.html
+  Section list template (e.g. /posts/):
+  - "main": Renders empty reading pane placeholder with section post count.
+  - "message-list": Renders paginated posts belonging to this section in the sidebar.
+*/}}
 {{ define "main" }}
   {{ partial "reading-empty.html" (len .Pages) }}
 {{ end }}
+
 {{ define "message-list" }}
   {{ $paginator := .Paginate .Pages }}
   {{ partial "message-list.html" (dict "Pages" $paginator.Pages "Current" . "Paginator" $paginator) }}
 {{ end }}
+

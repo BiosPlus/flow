@@ -1,3 +1,21 @@
+{{/*
+  layouts/_partials/image-processor.html
+  Universal Media Processor for Flow Theme:
+  - Resolves assets from `assets/images/`.
+  - Animated Media: Delivers modern WebM video (<video autoplay loop muted playsinline>) with fallback to GIF.
+  - Static Media: Delivers modern JPEG XL (<source type="image/jxl">), dynamic Hugo WebP generation (<source type="image/webp">), and original raster fallback.
+  - Supports figures with captions and custom classes.
+  
+  Parameters received via context dict:
+    - src (string, required): Filename or relative path in assets/images/
+    - alt (string, optional): Alt text description
+    - caption (string, optional): Figcaption text (supports HTML)
+    - class (string, optional): Custom CSS class for <figure> or <img>/<video>
+    - width (int/string, optional): Intrinsic width override
+    - height (int/string, optional): Intrinsic height override
+    - loading (string, optional): "lazy" (default) or "eager"
+    - quality (string, optional): WebP conversion quality (default "75")
+*/}}
 {{- $src := .src -}}
 {{- if not $src -}}
   {{- errorf "image-processor: 'src' parameter is required." -}}
@@ -12,6 +30,7 @@
 {{- $imgHeight := .height -}}
 {{- $quality := .quality | default "75" -}}
 
+{{/* Normalize image asset path relative to assets/images/ */}}
 {{- $cleanSrc := strings.TrimPrefix "/" $src -}}
 {{- $cleanSrc = strings.TrimPrefix "images/" $cleanSrc -}}
 {{- $imageAssetPath := printf "images/%s" $cleanSrc -}}
@@ -28,12 +47,15 @@
 {{- $isWebm := or (eq $ext "webm") (eq $resource.MediaType.SubType "webm") -}}
 {{- $hasCaption := or $caption $class -}}
 
+{{/* Wrap in <figure> if a caption or wrapper class is provided */}}
 {{- if $hasCaption -}}
 <figure{{ with $class }} class="{{ . }}"{{ end }}>
 {{- end -}}
 
 {{- if or $isGif $isWebm -}}
-  {{- /* Animated GIF / WebM handling */ -}}
+  {{/* -------------------------------------------------------------------------
+       Animated Media: Render WebM video with GIF fallback image
+       ------------------------------------------------------------------------- */}}
   {{- $webmResource := resources.Get (printf "%s.webm" $basePath) -}}
   {{- $gifResource := resources.Get (printf "%s.gif" $basePath) -}}
   {{- $fallbackResource := or $gifResource $resource -}}
@@ -51,12 +73,15 @@
     <img src="{{ $fallbackResource.RelPermalink }}" alt="{{ $alt }}"{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }}{{ if not $hasCaption }}{{ with $class }} class="{{ . }}"{{ end }}{{ end }} loading="{{ $loading }}" decoding="async">
   {{- end -}}
 {{- else -}}
-  {{- /* Static image handling: JXL -> WebP failover -> Original fallback */ -}}
+  {{/* -------------------------------------------------------------------------
+       Static Images: Render <picture> with JXL, WebP, and original fallback
+       ------------------------------------------------------------------------- */}}
   {{- $jxlResource := resources.Get (printf "%s.jxl" $basePath) -}}
   {{- $w := or $imgWidth (and $resource.Width $resource.Width) -}}
   {{- $h := or $imgHeight (and $resource.Height $resource.Height) -}}
 
   {{- if eq $ext "jxl" -}}
+    {{/* Directly requested .jxl source */}}
     {{- $webpResource := resources.Get (printf "%s.webp" $basePath) -}}
     <picture>
       <source type="image/jxl" srcset="{{ $resource.RelPermalink }}">
@@ -66,6 +91,7 @@
       <img src="{{ $resource.RelPermalink }}" alt="{{ $alt }}"{{ with $w }} width="{{ . }}"{{ end }}{{ with $h }} height="{{ . }}"{{ end }}{{ if not $hasCaption }}{{ with $class }} class="{{ . }}"{{ end }}{{ end }} loading="{{ $loading }}" decoding="async">
     </picture>
   {{- else -}}
+    {{/* Raster source: Generate WebP on-the-fly via Hugo and include JXL if available */}}
     {{- $webpImage := $resource.Process (printf "webp q%s" $quality) -}}
     <picture>
       {{- with $jxlResource -}}
@@ -79,9 +105,11 @@
   {{- end -}}
 {{- end -}}
 
+{{/* Close <figure> and render optional <figcaption> */}}
 {{- if $hasCaption -}}
   {{- with $caption -}}
     <figcaption>{{ . | safeHTML }}</figcaption>
   {{- end -}}
 </figure>
 {{- end -}}
+

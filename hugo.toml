@@ -1,17 +1,38 @@
+# Base URL of the site (used for generating canonical and absolute URLs)
 baseURL = "/"
+
+# Default locale for language and date formatting
 locale = "en-au"
+
+# Site title displayed in browser tabs and the header toolbar
 title = "Your site title"
+
+# Output directory for production builds (rendered via `hugo --gc --minify`)
 publishDir = "build"
+
+# Location where theme folders reside
 themesDir = "theme"
+
+# Active theme name corresponding to folder in themesDir
 theme = "flow"
 
+# Pagination settings
 [pagination]
+  # Number of posts per page in lists and pagination calculations
   pagerSize = 25
 
+# Taxonomy definitions
 [taxonomies]
   tag = "tags"
 
+# Site-wide custom parameters accessible via `site.Params`
 [params]
+  # Short site description shown in empty state and header toolbar
   description = "A short line about the site."
+
+  # Pinned tags displayed prominently at the start of the horizontal tag strip
   pinnedTags = ["thought", "tip"]
+
+  # Fallback pager size matching pagination.pagerSize for template calculations
   pagerSize = 25
+

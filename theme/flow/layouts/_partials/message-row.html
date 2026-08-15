@@ -1,9 +1,20 @@
+{{/*
+  layouts/_partials/message-row.html
+  Individual Message List Item:
+  - Formatted like a mail client message entry (timestamp, reading time, subject, snippet, and tag chips).
+  - Highlights selected post with `aria-current="page"` and `.current-row` class.
+*/}}
 <a href="{{ .Page.RelPermalink }}" {{ if eq .Page .Current }}aria-current="page" class="current-row message-row"{{ else }}class="message-row"{{ end }}>
+  {{/* Row timestamp and estimated reading time */}}
   <div class="row-meta">
     <span>{{ .Page.Date.Format "2006-01-02" }}</span>
     {{ if .Page.ReadingTime }}<span>{{ .Page.ReadingTime }} min read</span>{{ end }}
   </div>
+
+  {{/* Post subject / title */}}
   <div class="row-subject">{{ .Page.Title }}</div>
+
+  {{/* Snippet preview and deterministic tag chips */}}
   <div class="row-snippet-container">
     <div class="row-snippet">
       {{ .Page.Summary | plainify | truncate 110 }}
@@ -17,3 +28,4 @@
     {{ end }}
   </div>
 </a>
+

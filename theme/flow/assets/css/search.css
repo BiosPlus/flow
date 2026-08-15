@@ -1,5 +1,14 @@
-/* Material Design 3 Search Box Component Styles */
+/* ==========================================================================
+   Pagefind Search Component Styles
+   - Sub-bar Search Box Container & Focus Rings
+   - Search Input Field
+   - Keyboard Shortcut Badge (<kbd>/</kbd>)
+   - Clear Reset Button (x)
+   - Search Empty States (No Results / Index Not Built)
+   - Pagefind Query Highlight Marks (<mark>)
+   ========================================================================== */
 
+/* Search input container box */
 .search-box {
   position: relative;
   display: flex;
@@ -13,12 +22,14 @@
   box-sizing: border-box;
 }
 
+/* Focused search box active ring */
 .search-box:focus-within {
   border-color: var(--focus);
   box-shadow: 0 0 0 1px var(--focus);
   background-color: var(--surface-container-high);
 }
 
+/* Left search icon wrapper */
 .search-icon {
   display: flex;
   align-items: center;
@@ -29,6 +40,7 @@
   flex-shrink: 0;
 }
 
+/* Main text input */
 .search-input {
   flex: 1;
   min-width: 0;
@@ -47,13 +59,14 @@
   opacity: 0.85;
 }
 
-/* Remove default webkit search cancel button */
+/* Remove default WebKit search decoration and cancel icons */
 .search-input::-webkit-search-cancel-button,
 .search-input::-webkit-search-decoration {
   -webkit-appearance: none;
   appearance: none;
 }
 
+/* "/" Keyboard Shortcut Hint Badge */
 .search-shortcut {
   display: inline-flex;
   align-items: center;
@@ -73,10 +86,12 @@
   flex-shrink: 0;
 }
 
+/* Hide shortcut badge when user focuses the search box */
 .search-box:focus-within .search-shortcut {
   display: none;
 }
 
+/* Search Clear (x) button */
 .search-clear {
   background: none;
   border: none;
@@ -97,6 +112,7 @@
   color: var(--ink);
 }
 
+/* Empty State feedback when no matches are found */
 .search-empty-state {
   padding: 2.5rem 1rem;
   text-align: center;
@@ -111,7 +127,9 @@
   margin-top: 6px;
 }
 
-/* Pagefind highlighted excerpts */
+/* ----------------------------------------------------------------------------
+   Pagefind Query Highlight Marks (<mark>)
+   ---------------------------------------------------------------------------- */
 .message-row mark,
 .search-highlight {
   background: rgba(255, 137, 125, 0.28);
@@ -128,3 +146,4 @@
     color: inherit;
   }
 }
+

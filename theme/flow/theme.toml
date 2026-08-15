@@ -1,5 +1,8 @@
+# Theme Metadata for Flow Hugo Theme
 name = "flow"
 license = "MIT"
 author = "BiosPlus"
 description = "A blog presented as a mail client."
+# Minimum Hugo Extended version required for dynamic Chroma asset pipeline
 min_version = "0.165.0"
+

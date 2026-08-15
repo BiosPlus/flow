@@ -1,30 +1,38 @@
-/* Material Design 3 Deterministic Tag Chips */
+/* ==========================================================================
+   Material Design 3 Deterministic Tag Chips
+   - 8 Contrast-Checked M3 Tonal Container Color Pairs
+   - Hashes tag text with FNV-32a mod 8 in `chip.html` and `search.js`
+   - Dark Mode: Deep tonal backgrounds with vibrant pastel typography
+   - Light Mode: Soft pastel containers with high-contrast saturated text
+   ========================================================================== */
+
 :root {
-  /* Dark mode default (AMOLED & M3 Tonal Containers) */
-  --chip-0-bg: #3d1416; --chip-0-fg: #ffb4ab; --chip-0-border: rgba(255, 180, 171, 0.25);
-  --chip-1-bg: #32194d; --chip-1-fg: #e8b9ff; --chip-1-border: rgba(232, 185, 255, 0.25);
-  --chip-2-bg: #10264a; --chip-2-fg: #adc6ff; --chip-2-border: rgba(173, 198, 255, 0.25);
-  --chip-3-bg: #09323b; --chip-3-fg: #7de8f7; --chip-3-border: rgba(125, 232, 247, 0.25);
-  --chip-4-bg: #14351d; --chip-4-fg: #9cebb2; --chip-4-border: rgba(156, 235, 178, 0.25);
-  --chip-5-bg: #3d2b07; --chip-5-fg: #ffd580; --chip-5-border: rgba(255, 213, 128, 0.25);
-  --chip-6-bg: #382218; --chip-6-fg: #f5bba3; --chip-6-border: rgba(245, 187, 163, 0.25);
-  --chip-7-bg: #1e262f; --chip-7-fg: #c2cbd6; --chip-7-border: rgba(194, 203, 214, 0.25);
+  /* Dark Mode Default (AMOLED & M3 Tonal Containers) */
+  --chip-0-bg: #3d1416; --chip-0-fg: #ffb4ab; --chip-0-border: rgba(255, 180, 171, 0.25); /* Rose / Coral */
+  --chip-1-bg: #32194d; --chip-1-fg: #e8b9ff; --chip-1-border: rgba(232, 185, 255, 0.25); /* Purple / Violet */
+  --chip-2-bg: #10264a; --chip-2-fg: #adc6ff; --chip-2-border: rgba(173, 198, 255, 0.25); /* Blue / Azure */
+  --chip-3-bg: #09323b; --chip-3-fg: #7de8f7; --chip-3-border: rgba(125, 232, 247, 0.25); /* Cyan / Teal */
+  --chip-4-bg: #14351d; --chip-4-fg: #9cebb2; --chip-4-border: rgba(156, 235, 178, 0.25); /* Emerald / Green */
+  --chip-5-bg: #3d2b07; --chip-5-fg: #ffd580; --chip-5-border: rgba(255, 213, 128, 0.25); /* Amber / Gold */
+  --chip-6-bg: #382218; --chip-6-fg: #f5bba3; --chip-6-border: rgba(245, 187, 163, 0.25); /* Orange / Rust */
+  --chip-7-bg: #1e262f; --chip-7-fg: #c2cbd6; --chip-7-border: rgba(194, 203, 214, 0.25); /* Slate / Steel */
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    /* Light mode (M3 Tonal Containers) */
-    --chip-0-bg: #ffdad6; --chip-0-fg: #690005; --chip-0-border: rgba(105, 0, 5, 0.15);
-    --chip-1-bg: #f2daff; --chip-1-fg: #561f77; --chip-1-border: rgba(86, 31, 119, 0.15);
-    --chip-2-bg: #dbe1ff; --chip-2-fg: #133878; --chip-2-border: rgba(19, 56, 120, 0.15);
-    --chip-3-bg: #c4f3ff; --chip-3-fg: #004f58; --chip-3-border: rgba(0, 79, 88, 0.15);
-    --chip-4-bg: #c8eccf; --chip-4-fg: #005224; --chip-4-border: rgba(0, 82, 36, 0.15);
-    --chip-5-bg: #ffe08b; --chip-5-fg: #5a4300; --chip-5-border: rgba(90, 67, 0, 0.15);
-    --chip-6-bg: #ffdbcd; --chip-6-fg: #5d2b18; --chip-6-border: rgba(93, 43, 24, 0.15);
-    --chip-7-bg: #dce3e9; --chip-7-fg: #2c3842; --chip-7-border: rgba(44, 56, 66, 0.15);
+    /* Light Mode (M3 Tonal Containers) */
+    --chip-0-bg: #ffdad6; --chip-0-fg: #690005; --chip-0-border: rgba(105, 0, 5, 0.15);     /* Rose / Coral */
+    --chip-1-bg: #f2daff; --chip-1-fg: #561f77; --chip-1-border: rgba(86, 31, 119, 0.15);   /* Purple / Violet */
+    --chip-2-bg: #dbe1ff; --chip-2-fg: #133878; --chip-2-border: rgba(19, 56, 120, 0.15);   /* Blue / Azure */
+    --chip-3-bg: #c4f3ff; --chip-3-fg: #004f58; --chip-3-border: rgba(0, 79, 88, 0.15);     /* Cyan / Teal */
+    --chip-4-bg: #c8eccf; --chip-4-fg: #005224; --chip-4-border: rgba(0, 82, 36, 0.15);     /* Emerald / Green */
+    --chip-5-bg: #ffe08b; --chip-5-fg: #5a4300; --chip-5-border: rgba(90, 67, 0, 0.15);     /* Amber / Gold */
+    --chip-6-bg: #ffdbcd; --chip-6-fg: #5d2b18; --chip-6-border: rgba(93, 43, 24, 0.15);     /* Orange / Rust */
+    --chip-7-bg: #dce3e9; --chip-7-fg: #2c3842; --chip-7-border: rgba(44, 56, 66, 0.15);    /* Slate / Steel */
   }
 }
 
+/* Base Tag Chip Badge */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -42,6 +50,7 @@
   transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
+/* 8 Palette Index Variants (Matched deterministically by hash) */
 .chip--0 { background-color: var(--chip-0-bg); color: var(--chip-0-fg); border-color: var(--chip-0-border); }
 .chip--1 { background-color: var(--chip-1-bg); color: var(--chip-1-fg); border-color: var(--chip-1-border); }
 .chip--2 { background-color: var(--chip-2-bg); color: var(--chip-2-fg); border-color: var(--chip-2-border); }
@@ -50,3 +59,4 @@
 .chip--5 { background-color: var(--chip-5-bg); color: var(--chip-5-fg); border-color: var(--chip-5-border); }
 .chip--6 { background-color: var(--chip-6-bg); color: var(--chip-6-fg); border-color: var(--chip-6-border); }
 .chip--7 { background-color: var(--chip-7-bg); color: var(--chip-7-fg); border-color: var(--chip-7-border); }
+

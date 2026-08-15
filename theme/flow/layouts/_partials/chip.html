@@ -1,2 +1,9 @@
+{{/*
+  layouts/_partials/chip.html
+  Renders a tag chip with deterministic color indexing:
+  - Hashes the tag string using FNV-32a algorithm.
+  - Modulo 8 maps it to one of 8 contrast-checked Material Design 3 color classes (.chip--0 .. .chip--7).
+*/}}
 {{ $i := mod (hash.FNV32a .) 8 }}
 <span class="chip chip--{{ $i }}">{{ . }}</span>
+
