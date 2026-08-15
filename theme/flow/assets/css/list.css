@@ -49,6 +49,10 @@
   cursor: default;
 }
 
+.message-list-items {
+  overflow-y: auto;
+}
+
 .message-row {
   display: block;
   text-decoration: none;

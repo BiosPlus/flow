@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="k-{{ .Kind }}" lang="en-au">
+<html class="k-{{ .Kind }}" lang="{{ site.Language.LanguageCode | default site.LanguageCode | default "en" }}">
 <head>
   {{ partial "head.html" . }}
 </head>

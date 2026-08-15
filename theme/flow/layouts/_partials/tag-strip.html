@@ -1,6 +1,4 @@
-{{ $isAll := eq .Kind "home" }}
-{{ if eq .Kind "section" }}{{ $isAll = true }}{{ end }}
-{{ if eq .Kind "page" }}{{ $isAll = true }}{{ end }}
+{{ $isAll := or (eq .Kind "home") (eq .Kind "section") (eq .Kind "page") }}
 
 {{ $currentTag := "" }}
 {{ if eq .Kind "term" }}
