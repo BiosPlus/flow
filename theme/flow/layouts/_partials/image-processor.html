@@ -21,15 +21,10 @@
 
 {{- $isGif := eq $image.MediaType.SubType "gif" -}}
 
-{{- $figureClass := "" -}}
-{{- if $class -}}
-  {{- $figureClass = printf " class=\"%s\"" $class -}}
-{{- end -}}
-
 {{- $hasCaption := or $caption $class -}}
 
 {{- if $hasCaption -}}
-<figure{{ $figureClass | safeHTMLAttr }}>
+<figure{{ with $class }} class="{{ . }}"{{ end }}>
 {{- end -}}
 
 {{- if $isGif -}}
