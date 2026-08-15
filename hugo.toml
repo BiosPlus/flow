@@ -2,9 +2,11 @@ baseURL = "/"
 locale = "en-au"
 title = "Your site title"
 publishDir = "build"
-
 themesDir = "theme"
 theme = "flow"
+
+[pagination]
+  pagerSize = 25
 
 [taxonomies]
   tag = "tags"
@@ -12,3 +14,4 @@ theme = "flow"
 [params]
   description = "A short line about the site."
   pinnedTags = ["thought", "tip"]
+  pagerSize = 25

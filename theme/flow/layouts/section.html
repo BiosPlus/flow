@@ -2,5 +2,6 @@
   {{ partial "reading-empty.html" (len .Pages) }}
 {{ end }}
 {{ define "message-list" }}
-  {{ partial "message-list.html" (dict "Pages" .Pages "Current" .) }}
+  {{ $paginator := .Paginate .Pages }}
+  {{ partial "message-list.html" (dict "Pages" $paginator.Pages "Current" . "Paginator" $paginator) }}
 {{ end }}

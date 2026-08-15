@@ -2,6 +2,8 @@
   [module.hugoVersion]
     min = "0.165.0"
 
+paginate = 25
+
 [markup]
   [markup.highlight]
     noClasses = false
