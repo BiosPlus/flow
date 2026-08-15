@@ -3,7 +3,7 @@
   <article data-pagefind-body>
     <h1 data-pagefind-meta="title">{{ .Title }}</h1>
     <div class="reading-meta">
-      <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}" data-pagefind-meta="date">{{ .Date.Format "2 Jan 2006" }}</time>
+      <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}" data-pagefind-meta="date">{{ .Date.Format "2006-01-02" }}</time>
       {{ if .ReadingTime }}<span> · </span><span data-pagefind-meta="readingTime">{{ .ReadingTime }} min read</span>{{ end }}
       {{- if .Params.tags -}}
         <span> · </span>

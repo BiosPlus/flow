@@ -1,6 +1,6 @@
 <a href="{{ .Page.RelPermalink }}" {{ if eq .Page .Current }}aria-current="page" class="current-row message-row"{{ else }}class="message-row"{{ end }}>
   <div class="row-meta">
-    <span>{{ .Page.Date.Format "2 Jan 2006" }}</span>
+    <span>{{ .Page.Date.Format "2006-01-02" }}</span>
     {{ if .Page.ReadingTime }}<span>{{ .Page.ReadingTime }} min read</span>{{ end }}
   </div>
   <div class="row-subject">{{ .Page.Title }}</div>
