@@ -14,5 +14,6 @@
 {{ end }}
 {{ define "message-list" }}
   {{ $pages := where site.RegularPages "Section" "posts" }}
-  {{ partial "message-list.html" (dict "Pages" $pages "Current" .) }}
+  {{ $paginator := .Paginate $pages }}
+  {{ partial "message-list.html" (dict "Pages" $paginator.Pages "Current" . "Paginator" $paginator) }}
 {{ end }}

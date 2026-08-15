@@ -1,10 +1,66 @@
 {{ $pages := .Pages }}
 {{ $current := .Current }}
-{{ $total := len $pages }}
-<div class="message-list-header" style="padding: 0.5rem; background: var(--surface); border-bottom: 1px solid var(--rule);">
-  <span>1 to {{ $total }} of {{ $total }}</span>
+
+{{ $total := 0 }}
+{{ $first := 0 }}
+{{ $last := 0 }}
+{{ $prevURL := "" }}
+{{ $nextURL := "" }}
+
+{{ if .Paginator }}
+  {{ $p := .Paginator }}
+  {{ $total = $p.TotalNumberOfElements }}
+  {{ if gt $total 0 }}
+    {{ $pageSize := len (index $p.Pagers 0).Pages }}
+    {{ $first = add (mul (sub $p.PageNumber 1) $pageSize) 1 }}
+    {{ $last = add (sub $first 1) (len $p.Pages) }}
+  {{ end }}
+  {{ with $p.Prev }}{{ $prevURL = .URL }}{{ end }}
+  {{ with $p.Next }}{{ $nextURL = .URL }}{{ end }}
+{{ else if .Pagination }}
+  {{ $total = .Pagination.Total }}
+  {{ $first = .Pagination.FirstNum }}
+  {{ $last = .Pagination.LastNum }}
+  {{ $prevURL = .Pagination.PrevURL }}
+  {{ $nextURL = .Pagination.NextURL }}
+{{ else }}
+  {{ $total = len $pages }}
+  {{ if gt $total 0 }}
+    {{ $first = 1 }}
+    {{ $last = $total }}
+  {{ end }}
+{{ end }}
+
+<div class="message-list-header">
+  <span class="message-list-count">
+    {{ if gt $total 0 }}
+      {{ $first }}–{{ $last }} of {{ $total }}
+    {{ else }}
+      0 of 0
+    {{ end }}
+  </span>
+  <div class="message-list-pager" aria-label="Pagination">
+    {{ if $prevURL }}
+      <a href="{{ $prevURL }}" class="pager-btn" aria-label="Newer posts" title="Newer posts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </a>
+    {{ else }}
+      <span class="pager-btn disabled" aria-disabled="true" aria-label="Newer posts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </span>
+    {{ end }}
+    {{ if $nextURL }}
+      <a href="{{ $nextURL }}" class="pager-btn" aria-label="Older posts" title="Older posts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </a>
+    {{ else }}
+      <span class="pager-btn disabled" aria-disabled="true" aria-label="Older posts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </span>
+    {{ end }}
+  </div>
 </div>
-<div class="message-list-items" style="overflow-y: auto;">
+<div class="message-list-items">
   {{ range $pages }}
     {{ partial "message-row.html" (dict "Page" . "Current" $current) }}
   {{ end }}
