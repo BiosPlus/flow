@@ -88,3 +88,22 @@ a.current-row {
   font-weight: 400;
   color: var(--ink-soft);
 }
+
+.infinite-scroll-sentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.infinite-scroll-status {
+  display: none;
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+}
+
+.infinite-scroll-status.is-loading {
+  display: block;
+}
