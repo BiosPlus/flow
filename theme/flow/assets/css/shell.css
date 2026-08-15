@@ -1,3 +1,12 @@
+/* ==========================================================================
+   Shell Layout & Application Skeleton
+   - 2-Column Split-Pane Desktop Interface (Message List + Reading Pane)
+   - Sub-bar (Search Bar + Horizontal Tag Strip)
+   - Cross-document View Transitions API
+   - Mobile Single-Column Responsive Switcher (<1000px)
+   ========================================================================== */
+
+/* Full Viewport App Container */
 body {
   margin: 0;
   overflow: hidden;
@@ -11,6 +20,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 2-Column Desktop Grid Layout */
 .layout-wrapper {
   display: grid;
   flex: 1;
@@ -18,6 +28,7 @@ body {
   overflow: hidden;
 }
 
+/* Top Navigation Bar */
 header {
   height: 46px;
   border-bottom: 1px solid var(--rule);
@@ -96,6 +107,7 @@ header {
   color: var(--ink-soft);
 }
 
+/* Left Message List Pane (Scroll Container) */
 .list-pane {
   overflow-y: auto;
   scrollbar-width: thin;
@@ -105,11 +117,13 @@ header {
   transition: opacity 0.12s ease;
 }
 
+/* Visual loading state while client-side tag filtering is in-flight */
 .list-pane.is-filtering {
   opacity: 0.5;
   pointer-events: none;
 }
 
+/* Right Reading Pane (Scroll Container) */
 .reading-pane {
   overflow-y: auto;
   scrollbar-width: thin;
@@ -118,6 +132,7 @@ header {
   view-transition-name: reading;
 }
 
+/* View Transitions API (Cross-document MPA transitions) */
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
 }
@@ -130,12 +145,15 @@ header {
   }
 }
 
+/* Accessible Focus Rings */
 *:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
-/* Sub-bar (Search & Tag Strip) */
+/* ----------------------------------------------------------------------------
+   Sub-bar (Search Pane + Tag Strip Grid)
+   ---------------------------------------------------------------------------- */
 .sub-bar {
   display: grid;
   grid-template-columns: minmax(300px, 380px) 1fr;
@@ -169,6 +187,7 @@ header {
   border-bottom: 1px solid var(--rule);
 }
 
+/* Soft gradient fade on right edge of tag strip indicating horizontal scrollability */
 .tag-strip-container::after {
   content: "";
   position: absolute;
@@ -226,6 +245,7 @@ header {
   margin-left: 2px;
 }
 
+/* Accessibility: Skip to Content link */
 .skip-link {
   position: absolute;
   top: -9999px;
@@ -246,6 +266,12 @@ header {
   left: 0;
 }
 
+/* ----------------------------------------------------------------------------
+   Mobile Responsive Layout (<1000px)
+   Switches from 2-column split-pane to single-view navigation flow.
+   - On list pages: Displays message list and tag selector; hides reading pane.
+   - On post pages (.k-page): Displays reading pane with back button; hides list.
+   ---------------------------------------------------------------------------- */
 @media (max-width: 999px) {
   body {
     display: block;
@@ -273,3 +299,4 @@ header {
     display: none;
   }
 }
+

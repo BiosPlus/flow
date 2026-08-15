@@ -1,3 +1,9 @@
+{{/*
+  layouts/_partials/reading-empty.html
+  Empty State Placeholder:
+  Displayed in the right-hand reading pane on the homepage, section, and term views
+  before the reader selects a specific post to read.
+*/}}
 <div class="empty-state">
   <div class="empty-state-title">No post selected</div>
   {{ if site.Params.description }}
@@ -5,3 +11,4 @@
   {{ end }}
   <div class="empty-state-hint">{{ . }} posts. Pick one from the list.</div>
 </div>
+

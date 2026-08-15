@@ -1,11 +1,23 @@
+{{/*
+  layouts/_partials/head.html
+  HTML <head> partial:
+  - Charset, viewport, and responsive meta tags.
+  - SEO-friendly title formatting and truncated description meta tags.
+  - Native Hugo Extended asset pipeline bundling (css.Build, js.Build) with Subresource Integrity (SRI) fingerprinting.
+*/}}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+{{/* Page Title: "Site Title — Site Description" for homepage; "Post Title · Site Title" for other pages */}}
 <title>{{ if .IsHome }}{{ site.Title }}{{ with site.Params.description }} — {{ . }}{{ end }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
+
+{{/* Meta description fallback cascade: Frontmatter description -> Post summary -> Site description */}}
 {{ $desc := .Description | default .Summary | default site.Params.description }}
 {{ with $desc }}
 <meta name="description" content="{{ . | plainify | truncate 160 }}">
 {{ end }}
 
+{{/* Build and fingerprint master CSS bundle with production minification */}}
 {{ $opts := dict
   "minify" hugo.IsProduction
 }}
@@ -15,11 +27,14 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{ end }}
 
+{{/* Bundle, minify, and fingerprint scroll-memory.js */}}
 {{ with resources.Get "js/scroll-memory.js" | js.Build | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
 
+{{/* Bundle, minify, and fingerprint search.js */}}
 {{ with resources.Get "js/search.js" | js.Build | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
+
 

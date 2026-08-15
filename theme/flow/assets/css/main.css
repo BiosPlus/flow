@@ -1,9 +1,27 @@
+/* ==========================================================================
+   Flow Theme - Master Stylesheet Entrypoint
+   Bundled and minified via Hugo Extended asset pipeline (css.Build).
+   ========================================================================== */
+
+/* Design Tokens & Theme Variables (Colors, Spacing, Typography) */
 @import "tokens.css";
+
+/* App Shell Layout (Grid, Header Toolbar, Sub-bar, Tag Strip, Mobile Queries) */
 @import "shell.css";
+
+/* Message List Pane (Header Counter, Pagination Controls, Message Rows) */
 @import "list.css";
+
+/* Material Design 3 Deterministic Tag Chips (Color Palettes & Styling) */
 @import "chips.css";
+
+/* Reading Pane (Typography, Measure, Breakouts, Code Blocks, Tables, TOC) */
 @import "reading.css";
+
+/* Pagefind Search Component (Search Box, Highlight Excerpts, Empty State) */
 @import "search.css";
 
+/* Syntax Highlighting Themes (Chroma Light & Dark) */
 @import "chroma-light.css";
 @import "chroma-dark.css" (prefers-color-scheme: dark);
+

@@ -1,5 +1,16 @@
 /**
- * Pagefind Search Integration for Flow Theme
+ * search.js - Pagefind Client-Side Search Integration for Flow Theme
+ *
+ * Architecture & Features:
+ *  - Lazy Loading: Dynamically imports `/pagefind/pagefind.js` on first hover or focus.
+ *  - Live Debounced Search: Executes search queries with 120ms debouncing, replacing sidebar rows in real time.
+ *  - Deterministic Chip Color Hashing: Uses 32-bit FNV-1a hash mod 8 matching Hugo's Go template `chip.html`.
+ *  - State Preservation: Caches original sidebar HTML and restores it when query is cleared.
+ *  - Race Condition Protection: Monotonic search IDs prevent out-of-order async resolution.
+ *  - Keyboard Shortcuts:
+ *      * `/` or `Cmd+K` / `Ctrl+K`: Focus and select search input.
+ *      * `Escape`: Clear search and restore previous message list.
+ *      * `Enter`: Open first matched post directly.
  */
 (function() {
   const searchInput = document.getElementById('search-input');
@@ -10,6 +21,9 @@
     return;
   }
 
+  /**
+   * Helper DOM element accessors
+   */
   function getListContainer() {
     return document.getElementById('message-list-items');
   }
@@ -30,6 +44,12 @@
   let debounceTimer = null;
   let currentSearchId = 0;
 
+  /**
+   * 32-bit FNV-1a string hashing algorithm with memoization cache.
+   * Maps tag strings deterministically to an integer index (0..7) identical to Hugo's `hash.FNV32a`.
+   * @param {string} str - Tag string to hash.
+   * @returns {number} Color index (0..7).
+   */
   const fnvCache = Object.create(null);
   function fnv32a(str) {
     if (fnvCache[str] !== undefined) return fnvCache[str];
@@ -43,6 +63,11 @@
     return res;
   }
 
+  /**
+   * Escapes HTML entities to prevent XSS injection in search excerpts and metadata.
+   * @param {string} str - Raw string.
+   * @returns {string} Escaped HTML-safe string.
+   */
   function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -53,6 +78,9 @@
       .replace(/'/g, '&#039;');
   }
 
+  /**
+   * Captures the default unsearched HTML and counter state of the sidebar message list.
+   */
   function captureOriginalState() {
     const container = getListContainer();
     const count = getListCount();
@@ -68,7 +96,7 @@
   // Initial capture on load
   captureOriginalState();
 
-  // Listen for tag filter updates from scroll-memory.js
+  // Listen for tag filter updates from scroll-memory.js to reset search input and refresh cache
   window.addEventListener('flow:list-updated', () => {
     if (searchInput && searchInput.value) {
       searchInput.value = '';
@@ -78,6 +106,10 @@
     captureOriginalState();
   });
 
+  /**
+   * Dynamically loads and initializes the Pagefind JavaScript bundle.
+   * @returns {Promise<object|null>} Pagefind instance or null if unavailable.
+   */
   async function loadPagefind() {
     if (pagefind) return pagefind;
     if (pagefindLoading) return pagefindLoading;
@@ -101,6 +133,9 @@
     return pagefindLoading;
   }
 
+  /**
+   * Restores the sidebar message list to its original state before search.
+   */
   function resetSearch() {
     const container = getListContainer();
     const count = getListCount();
@@ -117,11 +152,21 @@
     if (searchShortcut) searchShortcut.style.display = '';
   }
 
+  /**
+   * Generates markup for an individual tag chip with deterministic FNV32a color index.
+   * @param {string} tag - Tag name.
+   * @returns {string} Tag chip HTML.
+   */
   function renderChip(tag) {
     const idx = fnv32a(tag);
     return `<span class="chip chip--${idx}">${escapeHtml(tag)}</span>`;
   }
 
+  /**
+   * Renders a search result row styled identically to standard message rows.
+   * @param {object} item - Pagefind result data object.
+   * @returns {string} Message row HTML.
+   */
   function renderResultRow(item) {
     const currentPath = window.location.pathname;
     const isCurrent = (item.url === currentPath) || (item.url === currentPath + '/') || (currentPath === item.url + '/');
@@ -161,6 +206,10 @@
     `;
   }
 
+  /**
+   * Executes a full-text search against Pagefind and updates the message list UI.
+   * @param {string} query - Raw search query.
+   */
   async function performSearch(query) {
     const searchId = ++currentSearchId;
     const cleanQuery = query.trim();
@@ -180,6 +229,7 @@
 
     const pf = await loadPagefind();
 
+    // Guard against outdated out-of-order async responses
     if (searchId !== currentSearchId) return;
 
     if (!pf) {
@@ -215,7 +265,7 @@
         return;
       }
 
-      // Fetch top result data objects
+      // Fetch top result data objects concurrently (capped at 50 results)
       const dataResults = await Promise.all(search.results.slice(0, 50).map(r => r.data()));
       if (searchId !== currentSearchId) return;
 
@@ -237,11 +287,11 @@
     }
   }
 
-  // Pre-load Pagefind on input focus / mouseover
+  // Pre-load Pagefind on input focus / mouseover for instantaneous search response
   searchInput.addEventListener('focus', () => loadPagefind(), { once: true });
   searchInput.addEventListener('mouseover', () => loadPagefind(), { once: true });
 
-  // Input event with debouncing
+  // Input event with 120ms debouncing
   searchInput.addEventListener('input', (e) => {
     clearTimeout(debounceTimer);
     const query = e.target.value;
@@ -250,7 +300,7 @@
     }, 120);
   });
 
-  // Clear button click
+  // Clear button click handler
   if (searchClear) {
     searchClear.addEventListener('click', () => {
       searchInput.value = '';
@@ -259,7 +309,7 @@
     });
   }
 
-  // Keyboard navigation & shortcuts
+  // Keyboard navigation within the search input
   searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       searchInput.value = '';
@@ -274,7 +324,7 @@
     }
   });
 
-  // Global shortcut to focus search input: '/' or 'Cmd/Ctrl + K'
+  // Global keyboard shortcuts to focus search input: '/' or 'Cmd/Ctrl + K'
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented) return;
 
@@ -285,14 +335,14 @@
       activeEl.isContentEditable
     );
 
-    // '/' key when not typing in an input
+    // '/' key shortcut (when not focused inside a form input)
     if (e.key === '/' && !isInputActive && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       searchInput.focus();
       searchInput.select();
     }
 
-    // 'Cmd+K' or 'Ctrl+K'
+    // 'Cmd+K' (Mac) or 'Ctrl+K' (Windows/Linux)
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
       searchInput.focus();
@@ -300,3 +350,4 @@
     }
   });
 })();
+
