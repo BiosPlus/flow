@@ -12,3 +12,7 @@
   {{ $css := . | fingerprint }}
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{ end }}
+
+{{ with resources.Get "js/scroll-memory.js" | js.Build | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}

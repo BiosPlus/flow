@@ -42,6 +42,14 @@ nav {
   @view-transition { navigation: auto; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 *:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
@@ -66,6 +74,8 @@ nav {
 
 .tag-strip {
   display: flex;
+  scroll-behavior: smooth;
+  scroll-padding-inline: 1rem;
   overflow-x: auto;
   scrollbar-width: none;
   flex-wrap: nowrap;
@@ -99,4 +109,41 @@ nav {
 .tag-count {
   opacity: 0.7;
   font-size: 0.9em;
+}
+
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 16px;
+  z-index: 100;
+  text-decoration: none;
+  font-weight: 600;
+  border: 1px solid var(--rule);
+}
+
+.skip-link:focus {
+  top: 0;
+  left: 0;
+}
+
+@media (max-width: 999px) {
+  body {
+    display: block;
+    height: auto;
+    overflow: auto;
+  }
+  .layout-wrapper {
+    display: block;
+    overflow: visible;
+  }
+  html:not(.k-page) .reading-pane {
+    display: none;
+  }
+  html.k-page nav[aria-label="Tags"], html.k-page .tag-strip-container,
+  html.k-page .list-pane {
+    display: none;
+  }
 }

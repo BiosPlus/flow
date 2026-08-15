@@ -1,12 +1,12 @@
 /* 8 pairs of muted colors for chips */
 :root {
   /* Light mode - bg: ~90% lightness, fg: ~30% lightness */
-  --chip-0-bg: #ffebee; --chip-0-fg: #b71c1c; /* red */
-  --chip-1-bg: #f3e5f5; --chip-1-fg: #4a148c; /* purple */
-  --chip-2-bg: #e8eaf6; --chip-2-fg: #1a237e; /* indigo */
-  --chip-3-bg: #e1f5fe; --chip-3-fg: #01579b; /* light blue */
-  --chip-4-bg: #e8f5e9; --chip-4-fg: #1b5e20; /* green */
-  --chip-5-bg: #fff8e1; --chip-5-fg: #994300; /* amber/brown for 4.5+ contrast */
+  --chip-0-bg: #ffebee; --chip-0-fg: #7a1315; /* red */
+  --chip-1-bg: #f3e5f5; --chip-1-fg: #38116b; /* purple */
+  --chip-2-bg: #e8eaf6; --chip-2-fg: #131b61; /* indigo */
+  --chip-3-bg: #e1f5fe; --chip-3-fg: #013e6e; /* light blue */
+  --chip-4-bg: #e8f5e9; --chip-4-fg: #134517; /* green */
+  --chip-5-bg: #fff8e1; --chip-5-fg: #7a3500; /* amber/brown for 4.5+ contrast */
   --chip-6-bg: #efebe9; --chip-6-fg: #3e2723; /* brown */
   --chip-7-bg: #eceff1; --chip-7-fg: #263238; /* blue grey */
 }
@@ -14,9 +14,9 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Dark mode - bg: ~18% lightness, fg: ~75% lightness */
-    --chip-0-bg: #3c1418; --chip-0-fg: #ef9a9a; /* red */
-    --chip-1-bg: #301b3f; --chip-1-fg: #ce93d8; /* purple */
-    --chip-2-bg: #1c214d; --chip-2-fg: #9fa8da; /* indigo */
+    --chip-0-bg: #3c1418; --chip-0-fg: #fcb8b8; /* red */
+    --chip-1-bg: #301b3f; --chip-1-fg: #dcb143; /* purple, fixed */
+    --chip-2-bg: #1c214d; --chip-2-fg: #b2bbf2; /* indigo */
     --chip-3-bg: #0c2b3d; --chip-3-fg: #81d4fa; /* light blue */
     --chip-4-bg: #153317; --chip-4-fg: #a5d6a7; /* green */
     --chip-5-bg: #4d380e; --chip-5-fg: #ffe082; /* amber */

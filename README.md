@@ -1,11 +1,20 @@
-# flow
-Me experimenting with a new hugo theme for my blog
+# Flow Hugo Theme
+
+A blog presented as a mail client. Posts are messages. Tags are labels. The screen splits so the list stays visible while reading.
 
 ## Development
+
+The project requires a minimum Hugo version of 0.165.0, because it uses `css.ChromaStyles` and `importContext` introduced in that version.
 
 Run the following command for local development:
 ```sh
 hugo server --disableFastRender
 ```
-The `--disableFastRender` flag is required because every page's HTML depends on every other page due to the embedded list, and fast render will serve stale lists.
-The media-conditioned @import in main.css successfully lowered into an @media block inside the bundled main.css file (tested via reading build/css/main.*.css)
+The `--disableFastRender` flag is **mandatory**. Every page's HTML depends on every other page due to the embedded list, and fast render will serve stale lists.
+
+## Features
+
+- **No npm, no Tailwind, no PostCSS, no Sass:** Hugo's bundled esbuild covers bundling, `@import` inlining, native CSS nesting and minification.
+- **Pure CSS Responsive Layout:** Works beautifully on desktop and mobile without JS layout shifts.
+- **Accessibility:** Includes landmarks, visible focus rings, non-color state signals, and skip links.
+- **Chroma Syntax Highlighting:** Integrated without npm, using Hugo's built-in `css.ChromaStyles`.

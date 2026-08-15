@@ -4,7 +4,7 @@
 
 {{ $currentTag := "" }}
 {{ if eq .Kind "term" }}
-  {{ $currentTag = .Title }}
+  {{ $currentTag = .Data.Term }}
 {{ end }}
 
 <div class="tag-strip-container">
@@ -21,7 +21,7 @@
           {{ $tagTaxonomy := index site.Taxonomies.tags . }}
           {{ if $tagTaxonomy }}
             {{ $renderedTags = merge $renderedTags (dict . true) }}
-            {{ $isCurrent := eq $currentTag . }}
+            {{ $isCurrent := eq $currentTag (lower .) }}
             <a href="/tags/{{ . | urlize }}/" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
               {{ . }} <span class="tag-count">{{ len $tagTaxonomy }}</span>
             </a>
@@ -31,7 +31,7 @@
 
       {{ range site.Taxonomies.tags.ByCount }}
         {{ if not (index $renderedTags .Term) }}
-          {{ $isCurrent := eq $currentTag .Term }}
+          {{ $isCurrent := eq $currentTag (lower .Term) }}
           <a href="/tags/{{ .Term | urlize }}/" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
             {{ .Term }} <span class="tag-count">{{ .Count }}</span>
           </a>

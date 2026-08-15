@@ -4,15 +4,15 @@
   {{ partial "head.html" . }}
 </head>
 <body>
-  <a href="#reading" style="position: absolute; left: -9999px;">Skip to content</a>
-  <header>
+  <a href="#reading" class="skip-link">Skip to content</a>
+  <header aria-label="Site title and pagination">
     {{ partial "toolbar.html" . }}
   </header>
-  <nav>
+  <nav aria-label="Tags">
     {{ partial "tag-strip.html" . }}
   </nav>
   <div class="layout-wrapper">
-    <nav class="list-pane">
+    <nav class="list-pane" aria-label="Message list">
       {{ block "message-list" . }}{{ end }}
     </nav>
     <main id="reading" class="reading-pane">
