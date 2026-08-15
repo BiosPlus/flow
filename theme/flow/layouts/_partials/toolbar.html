@@ -5,8 +5,8 @@
   <div class="toolbar-right">
     {{ if .IsPage }}
       {{ $posts := where site.RegularPages "Section" "posts" }}
-      {{ $newer := $posts.Prev . }}
-      {{ $older := $posts.Next . }}
+      {{ $newer := $posts.Next . }}
+      {{ $older := $posts.Prev . }}
       <nav class="toolbar-nav" aria-label="Post navigation">
         {{ if $newer }}
           <a href="{{ $newer.RelPermalink }}" class="toolbar-btn" aria-label="Newer post" title="Newer post">
