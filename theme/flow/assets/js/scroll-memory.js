@@ -51,6 +51,7 @@
 
   /**
    * Restores the sidebar message list scroll position from sessionStorage.
+   * If no saved position exists, scrolls the currently active post into view.
    */
   function restoreScrollPosition() {
     const pane = document.querySelector('.list-pane');
@@ -58,6 +59,11 @@
     const saved = sessionStorage.getItem(SCROLL_KEY);
     if (saved) {
       pane.scrollTop = parseInt(saved, 10);
+    } else {
+      const currentRow = pane.querySelector('.message-row.current-row');
+      if (currentRow) {
+        currentRow.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
     }
   }
 
@@ -165,6 +171,7 @@
           const first = countEl.getAttribute('data-first') || '1';
           const total = countEl.getAttribute('data-total') || '';
           const currentCount = listItems.querySelectorAll('.message-row').length;
+          countEl.setAttribute('data-last', currentCount.toString());
           if (total) {
             countEl.textContent = `${first}–${currentCount} of ${total}`;
           }
@@ -182,12 +189,31 @@
             nextBtn.removeAttribute('href');
           }
         }
+
+        // Keep cached HTML in sync with expanded list
+        const activeTag = sessionStorage.getItem(ACTIVE_TAG_KEY);
+        if (activeTag) {
+          tagListCache.set(activeTag, listPane.innerHTML);
+        } else if (currentPath === '/') {
+          tagListCache.set('/', listPane.innerHTML);
+        }
+        window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: activeTag || currentPath } }));
       } catch (err) {
         console.warn('Infinite scroll error:', err);
       } finally {
         isInfiniteLoading = false;
         if (statusIndicator) statusIndicator.classList.remove('is-loading');
       }
+    }
+
+    // Intercept next page button clicks to load posts seamlessly without navigating reading pane
+    if (nextBtn) {
+      nextBtn.onclick = (e) => {
+        if (nextUrl) {
+          e.preventDefault();
+          loadNextPage();
+        }
+      };
     }
 
     // Attach IntersectionObserver to sentinel with a 200px pre-load threshold

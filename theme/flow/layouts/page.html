@@ -59,32 +59,24 @@
 
   {{/* Compute 1-based page number and slice indices */}}
   {{ $pageNumber := int (add (math.Floor (div (float $currentIdx) (float $pagerSize))) 1) }}
-  {{ $startIdx := mul (sub $pageNumber 1) $pagerSize }}
-  {{ $endIdx := $total }}
-  {{ if lt (add $startIdx $pagerSize) $total }}
-    {{ $endIdx = add $startIdx $pagerSize }}
+  {{ $endIdx := mul $pageNumber $pagerSize }}
+  {{ if gt $endIdx $total }}
+    {{ $endIdx = $total }}
   {{ end }}
 
-  {{/* Extract the posts corresponding to this page */}}
-  {{ $pagePosts := $allPosts | after $startIdx | first (sub $endIdx $startIdx) }}
+  {{/* Extract all posts from post 1 up to the current page window */}}
+  {{ $pagePosts := $allPosts | first $endIdx }}
 
   {{/* Compute first and last display numbers for the header counter */}}
   {{ $firstNum := 0 }}
   {{ $lastNum := 0 }}
   {{ if gt $total 0 }}
-    {{ $firstNum = add $startIdx 1 }}
+    {{ $firstNum = 1 }}
     {{ $lastNum = $endIdx }}
   {{ end }}
 
-  {{/* Compute pagination navigation URLs (previous page) */}}
+  {{/* Compute pagination navigation URLs (previous page - none since list starts from 1) */}}
   {{ $prevPageUrl := "" }}
-  {{ if gt $pageNumber 1 }}
-    {{ if eq (sub $pageNumber 1) 1 }}
-      {{ $prevPageUrl = "/" }}
-    {{ else }}
-      {{ $prevPageUrl = printf "/page/%d/" (sub $pageNumber 1) }}
-    {{ end }}
-  {{ end }}
 
   {{/* Compute pagination navigation URLs (next page) */}}
   {{ $totalPages := int (math.Ceil (div (float $total) (float $pagerSize))) }}

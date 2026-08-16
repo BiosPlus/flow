@@ -173,6 +173,7 @@
     const rowClass = isCurrent ? 'current-row message-row' : 'message-row';
     const ariaCurrent = isCurrent ? ' aria-current="page"' : '';
 
+    let dateStr = item.meta && item.meta.date ? escapeHtml(item.meta.date) : '';
     let readTimeStr = item.meta && item.meta.readingTime ? escapeHtml(item.meta.readingTime) : '';
     if (readTimeStr && !readTimeStr.includes('min read')) {
       readTimeStr += ' min read';
