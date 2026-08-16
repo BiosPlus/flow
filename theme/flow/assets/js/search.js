@@ -196,7 +196,7 @@
       : '';
 
     return `
-      <a href="${item.url}" class="${rowClass}"${ariaCurrent}>
+      <a href="${escapeHtml(item.url)}" class="${rowClass}"${ariaCurrent}>
         <div class="row-header">
           <div class="row-subject">${titleStr}</div>
           ${dateStr ? `<span class="row-date">${dateStr}</span>` : ''}
