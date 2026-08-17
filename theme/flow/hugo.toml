@@ -32,3 +32,28 @@ paginate = 25
     # Ending heading level (h3)
     endLevel = 3
 
+[services]
+  [services.rss]
+    # Maximum number of posts included in feed outputs
+    limit = 50
+
+# Atom 1.0 Feed Configuration
+[mediaTypes]
+  [mediaTypes."application/atom+xml"]
+    suffixes = ["xml"]
+
+[outputFormats]
+  [outputFormats.Atom]
+    mediaType = "application/atom+xml"
+    baseName = "atom"
+    rel = "alternate"
+    isPlainText = false
+
+[outputs]
+  home = ["html", "Atom", "rss"]
+  section = ["html", "Atom", "rss"]
+  taxonomy = ["html", "Atom", "rss"]
+  term = ["html", "Atom", "rss"]
+
+
+

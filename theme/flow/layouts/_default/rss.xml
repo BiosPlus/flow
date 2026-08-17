@@ -1,0 +1,59 @@
+{{/*
+  layouts/_default/rss.xml
+  Full-featured RSS 2.0 Feed Template with Atom self-link and Content module:
+  - Supports Homepage, Sections, and Tag Taxonomies.
+  - Includes full article content via <content:encoded> with CDATA wrapper.
+  - Automatically respects site.Config.Services.RSS.Limit.
+  - Tags are serialized into <category> elements.
+*/ -}}
+{{- $pctx := . -}}
+{{- if .IsHome -}}{{ $pctx = site }}{{- end -}}
+{{- $pages := slice -}}
+{{- if or $.IsHome $.IsSection -}}
+  {{- $pages = where $pctx.RegularPages "Section" "posts" -}}
+{{- else -}}
+  {{- $pages = $pctx.Pages -}}
+{{- end -}}
+{{- $limit := site.Config.Services.RSS.Limit | default 50 -}}
+{{- if ge $limit 1 -}}
+  {{- $pages = $pages | first $limit -}}
+{{- end -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>{{ if eq .Title site.Title }}{{ site.Title }}{{ else }}{{ with .Title }}{{ . }} · {{ end }}{{ site.Title }}{{ end }}</title>
+    <link>{{ .Permalink }}</link>
+    <description>{{ with .Description }}{{ . }}{{ else }}{{ with site.Params.description }}{{ . }}{{ else }}Recent content {{ if ne .Title site.Title }}in {{ .Title }} {{ end }}on {{ site.Title }}{{ end }}{{ end }}</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>{{ site.Language.Locale | default site.Language.Lang | default "en-au" }}</language>
+    {{- with site.Params.author }}
+    <managingEditor>{{ . }}</managingEditor>
+    <webMaster>{{ . }}</webMaster>
+    {{- end }}
+    {{- with site.Copyright }}
+    <copyright>{{ . }}</copyright>
+    {{- end }}
+    {{- if gt (len $pages) 0 }}
+    <lastBuildDate>{{ (index $pages 0).Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</lastBuildDate>
+    {{- end }}
+    {{- with .OutputFormats.Get "RSS" -}}
+    {{ printf "<atom:link href=%q rel=\"self\" type=%q />" .Permalink .MediaType | safeHTML }}
+    {{- end -}}
+    {{- range $pages }}
+    <item>
+      <title>{{ .Title }}</title>
+      <link>{{ .Permalink }}</link>
+      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</pubDate>
+      <guid isPermaLink="true">{{ .Permalink }}</guid>
+      <description>{{ with .Description }}{{ . | html }}{{ else }}{{ .Summary | html }}{{ end }}</description>
+      <content:encoded><![CDATA[{{ .Content | replaceRE "]]>" "]]&gt;" | safeHTML }}]]></content:encoded>
+      {{- range .Params.tags }}
+      <category>{{ . }}</category>
+      {{- end }}
+      {{- with site.Params.author }}
+      <author>{{ . }}</author>
+      {{- end }}
+    </item>
+    {{- end }}
+  </channel>
+</rss>

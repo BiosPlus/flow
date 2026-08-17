@@ -1,0 +1,65 @@
+{{/*
+  layouts/_default/atom.xml
+  Standards-Compliant Atom 1.0 Feed Template (RFC 4287):
+  - Supports Homepage, Sections, and Tag Taxonomies.
+  - Formats timestamps according to RFC 3339 / ISO 8601.
+  - Includes full article content in <content type="html"> with CDATA wrapper.
+  - Respects site.Config.Services.RSS.Limit.
+  - Serializes tags into <category term="..." label="..." /> elements.
+*/ -}}
+{{- $pctx := . -}}
+{{- if .IsHome -}}{{ $pctx = site }}{{- end -}}
+{{- $pages := slice -}}
+{{- if or $.IsHome $.IsSection -}}
+  {{- $pages = where $pctx.RegularPages "Section" "posts" -}}
+{{- else -}}
+  {{- $pages = $pctx.Pages -}}
+{{- end -}}
+{{- $limit := site.Config.Services.RSS.Limit | default 50 -}}
+{{- if ge $limit 1 -}}
+  {{- $pages = $pages | first $limit -}}
+{{- end -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ if eq .Title site.Title }}{{ site.Title }}{{ else }}{{ with .Title }}{{ . }} · {{ end }}{{ site.Title }}{{ end }}</title>
+  {{- with .Description }}
+  <subtitle>{{ . }}</subtitle>
+  {{- else }}
+  {{- with site.Params.description }}
+  <subtitle>{{ . }}</subtitle>
+  {{- end }}
+  {{- end }}
+  {{- with .OutputFormats.Get "Atom" -}}
+  <link href="{{ .Permalink }}" rel="self" type="application/atom+xml" />
+  {{- end }}
+  <link href="{{ .Permalink }}" rel="alternate" type="text/html" />
+  <id>{{ .Permalink }}</id>
+  <generator uri="https://gohugo.io/">Hugo</generator>
+  {{- if gt (len $pages) 0 }}
+  <updated>{{ (index $pages 0).Date.Format "2006-01-02T15:04:05Z07:00" }}</updated>
+  {{- end }}
+  {{- with site.Params.author }}
+  <author>
+    <name>{{ . }}</name>
+  </author>
+  {{- end }}
+  {{- range $pages }}
+  <entry>
+    <title>{{ .Title }}</title>
+    <link href="{{ .Permalink }}" rel="alternate" type="text/html" />
+    <id>{{ .Permalink }}</id>
+    <published>{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}</published>
+    <updated>{{ (.Lastmod | default .Date).Format "2006-01-02T15:04:05Z07:00" }}</updated>
+    {{- with site.Params.author }}
+    <author>
+      <name>{{ . }}</name>
+    </author>
+    {{- end }}
+    {{- range .Params.tags }}
+    <category term="{{ . }}" label="{{ . }}" />
+    {{- end }}
+    <summary type="html">{{ with .Description }}{{ . | html }}{{ else }}{{ .Summary | html }}{{ end }}</summary>
+    <content type="html"><![CDATA[{{ .Content | replaceRE "]]>" "]]&gt;" | safeHTML }}]]></content>
+  </entry>
+  {{- end }}
+</feed>
