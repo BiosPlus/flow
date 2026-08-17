@@ -3,7 +3,7 @@
   Standards-Compliant Atom 1.0 Feed Template (RFC 4287):
   - Supports Homepage, Sections, and Tag Taxonomies.
   - Formats timestamps according to RFC 3339 / ISO 8601.
-  - Includes full article content in <content type="html"> with CDATA wrapper.
+  - Safely escapes HTML entities in <content type="html"> per RFC 4287 §3.1.1.2 for valid XML output.
   - Respects site.Config.Services.RSS.Limit.
   - Serializes tags into <category term="..." label="..." /> elements.
 */ -}}
@@ -59,7 +59,7 @@
     <category term="{{ . }}" label="{{ . }}" />
     {{- end }}
     <summary type="html">{{ with .Description }}{{ . | html }}{{ else }}{{ .Summary | html }}{{ end }}</summary>
-    <content type="html"><![CDATA[{{ .Content | replaceRE "]]>" "]]&gt;" | safeHTML }}]]></content>
+    <content type="html">{{ .Content | html }}</content>
   </entry>
   {{- end }}
 </feed>

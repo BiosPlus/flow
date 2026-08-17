@@ -2,7 +2,7 @@
   layouts/_default/rss.xml
   Full-featured RSS 2.0 Feed Template with Atom self-link and Content module:
   - Supports Homepage, Sections, and Tag Taxonomies.
-  - Includes full article content via <content:encoded> with CDATA wrapper.
+  - Safely encodes HTML content in <content:encoded> for XML well-formedness.
   - Automatically respects site.Config.Services.RSS.Limit.
   - Tags are serialized into <category> elements.
 */ -}}
@@ -46,7 +46,7 @@
       <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</pubDate>
       <guid isPermaLink="true">{{ .Permalink }}</guid>
       <description>{{ with .Description }}{{ . | html }}{{ else }}{{ .Summary | html }}{{ end }}</description>
-      <content:encoded><![CDATA[{{ .Content | replaceRE "]]>" "]]&gt;" | safeHTML }}]]></content:encoded>
+      <content:encoded>{{ .Content | html }}</content:encoded>
       {{- range .Params.tags }}
       <category>{{ . }}</category>
       {{- end }}
