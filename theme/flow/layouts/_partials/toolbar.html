@@ -49,6 +49,30 @@
         <span class="toolbar-desc">{{ site.Params.description }}</span>
       {{ end }}
     {{ end }}
+
+    {{/* RSS Feed Button */}}
+    {{ $rssLink := "" }}
+    {{ $rssTitle := "RSS Feed" }}
+    {{ with .OutputFormats.Get "rss" }}
+      {{ $rssLink = .RelPermalink }}
+      {{ if not $.IsHome }}
+        {{ $rssTitle = printf "%s RSS Feed" $.Title }}
+      {{ end }}
+    {{ else }}
+      {{ with site.Home.OutputFormats.Get "rss" }}
+        {{ $rssLink = .RelPermalink }}
+      {{ end }}
+    {{ end }}
+    {{ with $rssLink }}
+      <a href="{{ . }}" class="toolbar-btn toolbar-btn-rss" aria-label="{{ $rssTitle }}" title="{{ $rssTitle }}" target="_blank" rel="alternate" type="application/rss+xml">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 11a9 9 0 0 1 9 9"></path>
+          <path d="M4 4a16 16 0 0 1 16 16"></path>
+          <circle cx="5" cy="19" r="1"></circle>
+        </svg>
+        <span>RSS</span>
+      </a>
+    {{ end }}
   </div>
 </div>
 

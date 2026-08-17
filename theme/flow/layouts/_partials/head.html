@@ -17,6 +17,16 @@
 <meta name="description" content="{{ . | plainify | truncate 160 }}">
 {{ end }}
 
+{{/* RSS Feed Auto-Discovery */}}
+{{ with .OutputFormats.Get "rss" }}
+  <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}" title="{{ if $.IsHome }}{{ site.Title }}{{ else }}{{ printf "%s · %s" $.Title site.Title }}{{ end }}">
+{{ end }}
+{{ if not (.OutputFormats.Get "rss") }}
+  {{ with site.Home.OutputFormats.Get "rss" }}
+    <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}" title="{{ site.Title }}">
+  {{ end }}
+{{ end }}
+
 {{/* Build and fingerprint master CSS bundle with production minification */}}
 {{ $opts := dict
   "minify" hugo.IsProduction

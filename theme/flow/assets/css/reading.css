@@ -316,6 +316,28 @@ figcaption {
   font-family: var(--font-mono);
 }
 
+.empty-state-rss {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1.25rem;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--rule);
+  background: var(--surface-container);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.empty-state-rss:hover {
+  color: var(--ink);
+  background: var(--surface-container-high);
+  border-color: var(--ink-muted);
+}
+
 /* ----------------------------------------------------------------------------
    Mobile Overrides
    ---------------------------------------------------------------------------- */

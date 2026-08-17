@@ -32,3 +32,9 @@ paginate = 25
     # Ending heading level (h3)
     endLevel = 3
 
+[services]
+  [services.rss]
+    # Maximum number of posts included in RSS feed outputs
+    limit = 50
+
+
