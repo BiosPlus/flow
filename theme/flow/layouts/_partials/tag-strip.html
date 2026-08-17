@@ -18,7 +18,7 @@
 <div class="tag-strip-container">
   <div class="tag-strip">
     {{/* "all" posts default tab */}}
-    <a href="/" class="tag-strip-item {{ if $isAll }}current{{ end }}" {{ if $isAll }}aria-current="page"{{ end }}>
+    <a href="{{ site.Home.RelPermalink }}" class="tag-strip-item {{ if $isAll }}current{{ end }}" {{ if $isAll }}aria-current="page"{{ end }}>
       all
     </a>
 
@@ -32,7 +32,7 @@
           {{ if $tagTaxonomy }}
             {{ $renderedTags = merge $renderedTags (dict . true) }}
             {{ $isCurrent := eq $currentTag (lower .) }}
-            <a href="/tags/{{ . | urlize }}/" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
+            <a href="{{ (printf "tags/%s/" (. | urlize)) | relLangURL }}" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
               {{ . }} <span class="tag-count">{{ len $tagTaxonomy }}</span>
             </a>
           {{ end }}
@@ -43,7 +43,7 @@
       {{ range site.Taxonomies.tags.ByCount }}
         {{ if not (index $renderedTags .Term) }}
           {{ $isCurrent := eq $currentTag (lower .Term) }}
-          <a href="/tags/{{ .Term | urlize }}/" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
+          <a href="{{ (printf "tags/%s/" (.Term | urlize)) | relLangURL }}" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
             {{ .Term }} <span class="tag-count">{{ .Count }}</span>
           </a>
         {{ end }}
@@ -51,7 +51,7 @@
 
       {{/* Link to the complete taxonomy overview page */}}
       {{ $isAllTags := eq .Kind "taxonomy" }}
-      <a href="/tags/" class="tag-strip-item {{ if $isAllTags }}current{{ end }}" {{ if $isAllTags }}aria-current="page"{{ end }}>
+      <a href="{{ "tags/" | relLangURL }}" class="tag-strip-item {{ if $isAllTags }}current{{ end }}" {{ if $isAllTags }}aria-current="page"{{ end }}>
         all tags
       </a>
     {{ end }}

@@ -107,6 +107,17 @@
   });
 
   /**
+   * Helper to retrieve base URL from document root attribute
+   */
+  function getBaseUrl() {
+    let base = document.documentElement.getAttribute('data-base-url') || '/';
+    if (!base.endsWith('/')) {
+      base += '/';
+    }
+    return base;
+  }
+
+  /**
    * Dynamically loads and initializes the Pagefind JavaScript bundle.
    * @returns {Promise<object|null>} Pagefind instance or null if unavailable.
    */
@@ -115,15 +126,16 @@
     if (pagefindLoading) return pagefindLoading;
 
     pagefindLoading = (async () => {
+      const pagefindPath = `${getBaseUrl()}pagefind/pagefind.js`;
       try {
-        const pf = await import('/pagefind/pagefind.js');
+        const pf = await import(pagefindPath);
         if (pf.init) {
           await pf.init();
         }
         pagefind = pf;
         return pf;
       } catch (err) {
-        console.warn('[Pagefind] Search index not found at /pagefind/pagefind.js', err);
+        console.warn(`[Pagefind] Search index not found at ${pagefindPath}`, err);
         return null;
       } finally {
         pagefindLoading = null;

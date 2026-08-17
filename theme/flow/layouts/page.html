@@ -6,7 +6,7 @@
 */}}
 {{ define "main" }}
   {{/* Mobile-only back button to return to message list */}}
-  <a href="/" class="back-to-list" data-pagefind-ignore>&larr; Back to list</a>
+  <a href="{{ site.Home.RelPermalink }}" class="back-to-list" data-pagefind-ignore>&larr; Back to list</a>
 
   {{/* Article container indexed by Pagefind full-text search engine */}}
   <article data-pagefind-body>
@@ -20,7 +20,7 @@
         <span> · </span>
         {{- range $i, $tag := .Params.tags -}}
           {{- if $i }} · {{ end -}}
-          <a href="{{ "/tags/" | relLangURL }}{{ $tag | urlize }}/" class="reading-meta-tag" data-pagefind-filter="tag">{{ $tag }}</a>
+          <a href="{{ (printf "tags/%s/" ($tag | urlize)) | relLangURL }}" class="reading-meta-tag" data-pagefind-filter="tag">{{ $tag }}</a>
         {{- end -}}
       {{- end -}}
     </div>
@@ -82,7 +82,7 @@
   {{ $totalPages := int (math.Ceil (div (float $total) (float $pagerSize))) }}
   {{ $nextPageUrl := "" }}
   {{ if lt $pageNumber $totalPages }}
-    {{ $nextPageUrl = printf "/page/%d/" (add $pageNumber 1) }}
+    {{ $nextPageUrl = (printf "page/%d/" (add $pageNumber 1)) | relLangURL }}
   {{ end }}
 
   {{/* Pass custom pagination context dictionary to message-list partial */}}

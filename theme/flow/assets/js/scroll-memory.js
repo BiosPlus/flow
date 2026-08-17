@@ -20,12 +20,24 @@
   let isTagFiltering = false;
 
   /**
+   * Helper to retrieve base URL from document root attribute.
+   * @returns {string} Base URL with trailing slash (e.g. "/" or "/subpath/")
+   */
+  function getBaseUrl() {
+    let base = document.documentElement.getAttribute('data-base-url') || '/';
+    if (!base.endsWith('/')) {
+      base += '/';
+    }
+    return base;
+  }
+
+  /**
    * Normalizes a URL to a trailing-slash pathname for deterministic comparisons.
    * @param {string} url - The URL or pathname string.
    * @returns {string} Normalized pathname (e.g. "/tags/thought/").
    */
   function normalizeUrl(url) {
-    if (!url) return '/';
+    if (!url) return getBaseUrl();
     try {
       const parsed = new URL(url, window.location.origin);
       let path = parsed.pathname;
@@ -192,10 +204,11 @@
 
         // Keep cached HTML in sync with expanded list
         const activeTag = sessionStorage.getItem(ACTIVE_TAG_KEY);
+        const homeUrl = getBaseUrl();
         if (activeTag) {
           tagListCache.set(activeTag, listPane.innerHTML);
-        } else if (currentPath === '/') {
-          tagListCache.set('/', listPane.innerHTML);
+        } else if (currentPath === homeUrl) {
+          tagListCache.set(homeUrl, listPane.innerHTML);
         }
         window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: activeTag || currentPath } }));
       } catch (err) {
@@ -293,9 +306,10 @@
 
         // Update active tab state in tag-strip
         if (tagStrip) {
+          const homeUrl = getBaseUrl();
           tagStrip.querySelectorAll('.tag-strip-item').forEach(item => {
             const itemHref = normalizeUrl(item.getAttribute('href'));
-            const isMatch = (itemHref === tagUrl) || (tagUrl === '/' && itemHref === '/');
+            const isMatch = (itemHref === tagUrl) || (tagUrl === homeUrl && itemHref === homeUrl);
             if (isMatch) {
               item.classList.add('current');
               item.setAttribute('aria-current', 'page');
@@ -310,11 +324,13 @@
         // Update mobile back-to-list href to match active filter
         const backToList = document.querySelector('.back-to-list');
         if (backToList) {
-          backToList.setAttribute('href', tagUrl === '/' ? '/' : tagUrl);
+          const homeUrl = getBaseUrl();
+          backToList.setAttribute('href', tagUrl === homeUrl ? homeUrl : tagUrl);
         }
 
         // Persist active tag filter in sessionStorage
-        if (tagUrl === '/' || tagUrl === '') {
+        const homeUrl = getBaseUrl();
+        if (tagUrl === homeUrl || tagUrl === '' || tagUrl === '/') {
           sessionStorage.removeItem(ACTIVE_TAG_KEY);
         } else {
           sessionStorage.setItem(ACTIVE_TAG_KEY, tagUrl);
@@ -336,12 +352,15 @@
 
   // Intercept tag clicks across tag strip and single post metadata
   document.addEventListener('click', (e) => {
+    const homeUrl = getBaseUrl();
+    const tagsRoot = `${homeUrl}tags/`;
+
     // 1. Tag strip items
     const tagStripItem = e.target.closest('.tag-strip-item');
     if (tagStripItem) {
       const href = tagStripItem.getAttribute('href');
-      // If it is "/tags/" (the all tags directory view), allow standard browser navigation
-      if (href && normalizeUrl(href) === '/tags/') {
+      // If it is the all tags directory view (/tags/ or /subpath/tags/), allow standard browser navigation
+      if (href && normalizeUrl(href) === tagsRoot) {
         return;
       }
       if (href) {
@@ -355,7 +374,7 @@
     const metaTag = e.target.closest('.reading-meta a, a.reading-meta-tag');
     if (metaTag) {
       const href = metaTag.getAttribute('href');
-      if (href && href.includes('/tags/')) {
+      if (href && (href.includes('/tags/') || normalizeUrl(href).startsWith(tagsRoot))) {
         e.preventDefault();
         applyTagFilter(href, { resetScroll: true });
         return;
@@ -368,13 +387,15 @@
     const listPane = document.querySelector('.list-pane');
     if (!listPane) return;
 
+    const homeUrl = getBaseUrl();
+    const tagsRoot = `${homeUrl}tags/`;
     const currentPath = normalizeUrl(window.location.pathname);
-    const isHomePage = currentPath === '/';
-    const isTaxonomyPage = currentPath === '/tags/';
+    const isHomePage = currentPath === homeUrl;
+    const isTaxonomyPage = currentPath === tagsRoot;
 
     // Cache initial list
     if (isHomePage) {
-      tagListCache.set('/', listPane.innerHTML);
+      tagListCache.set(homeUrl, listPane.innerHTML);
       sessionStorage.removeItem(ACTIVE_TAG_KEY);
       restoreScrollPosition();
       initInfiniteScroll();
@@ -382,7 +403,7 @@
       sessionStorage.removeItem(ACTIVE_TAG_KEY);
       restoreScrollPosition();
       initInfiniteScroll();
-    } else if (currentPath.startsWith('/tags/')) {
+    } else if (currentPath.startsWith(tagsRoot)) {
       // Direct visit to a tag URL
       tagListCache.set(currentPath, listPane.innerHTML);
       sessionStorage.setItem(ACTIVE_TAG_KEY, currentPath);

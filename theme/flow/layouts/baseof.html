@@ -6,7 +6,7 @@
   - Landmark regions: Header (Toolbar), Sub-bar (Search & Tag Strip), Split-pane (.list-pane & .reading-pane).
   - Pagefind search indexer ignores navigation regions via `data-pagefind-ignore`.
 */}}
-<html class="k-{{ .Kind }}" lang="{{ site.Language.Locale | default site.Language.Lang | default "en" }}">
+<html class="k-{{ .Kind }}" lang="{{ site.Language.Locale | default site.Language.Lang | default "en" }}" data-base-url="{{ site.Home.RelPermalink }}">
 <head>
   {{ partial "head.html" . }}
 </head>
