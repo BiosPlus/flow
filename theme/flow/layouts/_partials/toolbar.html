@@ -50,27 +50,44 @@
       {{ end }}
     {{ end }}
 
-    {{/* RSS Feed Button */}}
-    {{ $rssLink := "" }}
-    {{ $rssTitle := "RSS Feed" }}
-    {{ with .OutputFormats.Get "rss" }}
-      {{ $rssLink = .RelPermalink }}
+    {{/* Syndication Feed Button (Atom / RSS) */}}
+    {{ $feedLink := "" }}
+    {{ $feedType := "application/atom+xml" }}
+    {{ $feedTitle := "Atom Feed" }}
+    {{ with .OutputFormats.Get "Atom" }}
+      {{ $feedLink = .RelPermalink }}
       {{ if not $.IsHome }}
-        {{ $rssTitle = printf "%s RSS Feed" $.Title }}
+        {{ $feedTitle = printf "%s Atom Feed" $.Title }}
       {{ end }}
     {{ else }}
-      {{ with site.Home.OutputFormats.Get "rss" }}
-        {{ $rssLink = .RelPermalink }}
+      {{ with .OutputFormats.Get "rss" }}
+        {{ $feedLink = .RelPermalink }}
+        {{ $feedType = "application/rss+xml" }}
+        {{ if not $.IsHome }}
+          {{ $feedTitle = printf "%s RSS Feed" $.Title }}
+        {{ else }}
+          {{ $feedTitle = "RSS Feed" }}
+        {{ end }}
+      {{ else }}
+        {{ with site.Home.OutputFormats.Get "Atom" }}
+          {{ $feedLink = .RelPermalink }}
+        {{ else }}
+          {{ with site.Home.OutputFormats.Get "rss" }}
+            {{ $feedLink = .RelPermalink }}
+            {{ $feedType = "application/rss+xml" }}
+            {{ $feedTitle = "RSS Feed" }}
+          {{ end }}
+        {{ end }}
       {{ end }}
     {{ end }}
-    {{ with $rssLink }}
-      <a href="{{ . }}" class="toolbar-btn toolbar-btn-rss" aria-label="{{ $rssTitle }}" title="{{ $rssTitle }}" target="_blank" rel="alternate" type="application/rss+xml">
+    {{ with $feedLink }}
+      <a href="{{ . }}" class="toolbar-btn toolbar-btn-feed" aria-label="{{ $feedTitle }}" title="{{ $feedTitle }}" target="_blank" rel="alternate" type="{{ $feedType }}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 11a9 9 0 0 1 9 9"></path>
           <path d="M4 4a16 16 0 0 1 16 16"></path>
           <circle cx="5" cy="19" r="1"></circle>
         </svg>
-        <span>RSS</span>
+        <span>Atom</span>
       </a>
     {{ end }}
   </div>

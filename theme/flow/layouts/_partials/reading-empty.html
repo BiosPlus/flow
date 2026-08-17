@@ -10,13 +10,13 @@
     <div class="empty-state-desc">{{ site.Params.description }}</div>
   {{ end }}
   <div class="empty-state-hint">{{ . }} posts. Pick one from the list.</div>
-  <a href="{{ "/index.xml" | relURL }}" class="empty-state-rss" target="_blank" rel="alternate" type="application/rss+xml" title="Subscribe to RSS feed">
+  <a href="{{ "/atom.xml" | relURL }}" class="empty-state-rss" target="_blank" rel="alternate" type="application/atom+xml" title="Subscribe to Atom feed">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M4 11a9 9 0 0 1 9 9"></path>
       <path d="M4 4a16 16 0 0 1 16 16"></path>
       <circle cx="5" cy="19" r="1"></circle>
     </svg>
-    <span>Subscribe via RSS</span>
+    <span>Subscribe via Atom</span>
   </a>
 </div>
 

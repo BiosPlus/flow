@@ -36,3 +36,22 @@ theme = "flow"
   # Fallback pager size matching pagination.pagerSize for template calculations
   pagerSize = 25
 
+# Atom 1.0 & RSS Feed Configuration
+[mediaTypes]
+  [mediaTypes."application/atom+xml"]
+    suffixes = ["xml"]
+
+[outputFormats]
+  [outputFormats.Atom]
+    mediaType = "application/atom+xml"
+    baseName = "atom"
+    rel = "alternate"
+    isPlainText = false
+
+[outputs]
+  home = ["html", "Atom", "rss"]
+  section = ["html", "Atom", "rss"]
+  taxonomy = ["html", "Atom", "rss"]
+  term = ["html", "Atom", "rss"]
+
+
