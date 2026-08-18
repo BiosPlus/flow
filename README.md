@@ -123,3 +123,182 @@ hugo server --disableFastRender
 
 > [!IMPORTANT]
 > The `--disableFastRender` flag is **mandatory** during local development. Because Flow embeds the message list and pagination context across pages, fast render may serve stale sidebar lists when navigating between posts.
+
+---
+
+## ⚙️ Configuration
+
+Here is a recommended `hugo.toml` configuration:
+
+```toml
+baseURL = "https://example.com/"
+locale = "en-us"
+title = "My Flow Blog"
+publishDir = "build"
+themesDir = "theme"
+theme = "flow"
+
+# Pagination
+[pagination]
+  pagerSize = 25
+
+# Taxonomies
+[taxonomies]
+  tag = "tags"
+
+# Flow Theme Parameters
+[params]
+  # Site description displayed in toolbar and empty states
+  description = "Reflections on systems, software engineering, and craft."
+
+  # Pinned tags displayed prominently at the beginning of the tag strip
+  pinnedTags = ["engineering", "thoughts", "design"]
+
+  # Fallback pager size matching pagination.pagerSize
+  pagerSize = 25
+
+# Markup & Code Highlighting
+[markup]
+  [markup.highlight]
+    noClasses = false
+    lineNos = false
+    tabWidth = 2
+    wrapperClass = "highlight"
+  [markup.goldmark.renderer]
+    unsafe = false
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+# Atom & RSS Syndication
+[mediaTypes]
+  [mediaTypes."application/atom+xml"]
+    suffixes = ["xml"]
+
+[outputFormats]
+  [outputFormats.Atom]
+    mediaType = "application/atom+xml"
+    baseName = "atom"
+    rel = "alternate"
+    isPlainText = false
+
+[outputs]
+  home = ["html", "Atom", "rss"]
+  section = ["html", "Atom", "rss"]
+  taxonomy = ["html", "Atom", "rss"]
+  term = ["html", "Atom", "rss"]
+```
+
+---
+
+## 📝 Writing Content
+
+Create new articles inside `content/posts/`:
+
+```markdown
++++
+title = "Building Fast Static Interfaces"
+date = 2026-08-19T10:00:00Z
+description = "A deep dive into zero-layout-shift UI architecture."
+tags = ["engineering", "web", "performance"]
+toc = true
++++
+
+Here is the opening paragraph of your article. Flow styles typography with balanced line lengths, crisp contrast, and a distinct left accent guide-line.
+
+## Subheading
+
+You can write standard Markdown as usual.
+
+### Code Blocks with Syntax Highlighting
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Flow is lightning fast!")
+}
+```
+
+### Modern Images & Captions
+
+Standard Markdown images are automatically enhanced:
+
+![System Architecture Overview](architecture.png "Fig 1: High-level system diagram")
+
+Or use the dedicated `modern_image` shortcode for advanced options:
+
+{{< modern_image src="architecture.png" alt="Architecture" caption="Fig 1: Detailed breakdown" class="breakout" width="800" height="450" loading="lazy" quality="85" >}}
+
+### Breakout Data Tables
+
+Tables automatically wrap in breakout containers with horizontal scrolling:
+
+| Feature | Support | Performance |
+| :--- | :---: | :---: |
+| Split-Pane | Native | 60 FPS |
+| Pagefind | Full-Text | < 10ms |
+| JPEG XL / WebM | Native Fallbacks | 40-70% Smaller |
+```
+
+---
+
+## 🚀 Production Build & Search Indexing
+
+Flow uses **Pagefind** to deliver blazing fast, static full-text search. A complete production build involves compiling Hugo and generating the search index:
+
+```sh
+# 1. (Optional) Transcode media assets to JXL / WebM
+bash ./scripts/transcode-media.sh
+
+# 2. Build and minify the static site with Hugo Extended
+hugo --gc --minify
+
+# 3. Generate the Pagefind search index
+npx -y pagefind --site build
+```
+
+### Automated CI/CD (Render / Vercel / Netlify / GitHub Actions)
+The included [`build.sh`](build.sh) script automatically sets up Hugo Extended, checks toolchain checksums, transcodes media, builds the site, and indexes with Pagefind.
+
+---
+
+## 📂 Project Structure
+
+```text
+flow/
+├── assets/                  # Site-level media assets
+│   └── images/              # Source images (.png, .jpg, .gif)
+├── content/
+│   └── posts/               # Blog posts organized by year/month
+├── scripts/
+│   └── transcode-media.sh   # Incremental JXL & WebM media optimization script
+├── theme/
+│   └── flow/                # Flow theme directory
+│       ├── assets/          # Native CSS and JS asset pipeline
+│       │   ├── css/         # Design tokens, shell, reading, list, chips, chroma
+│       │   └── js/          # resize.js, scroll-memory.js, search.js
+│       └── layouts/         # Semantic templates, partials, markup render hooks
+├── build.sh                 # Production CI/CD build script
+├── hugo.toml                # Site configuration
+└── README.md
+```
+
+---
+
+## 🎨 Customizing Styles
+
+Flow's design system is controlled via CSS custom properties in [`tokens.css`](theme/flow/assets/css/tokens.css). You can easily override:
+* `--bg`: Background color for the reading pane (default AMOLED `#000000`).
+* `--surface`: Surface container background for sidebar, toolbar, and sub-bar.
+* `--accent`: Primary highlight color for active tabs, left guide-lines, and resizer handles (default `#ff897d`).
+* `--focus`: Accessible focus ring color (`#a8c7fa`).
+* `--font` & `--font-mono`: System typographic stacks.
+
+---
+
+## 📄 License
+
+Distributed under the [MIT License](LICENSE). Built by [BiosPlus](https://github.com/BiosPlus).
