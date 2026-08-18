@@ -3,13 +3,16 @@
 > **A high-performance Hugo theme crafted like a desktop mail client.**  
 > Posts are messages. Tags are labels. Read seamlessly with an interactive split-pane interface.
 
+[![Live Demo](https://img.shields.io/badge/Demo-flow--kv9i.onrender.com-00C7B7?logo=render&logoColor=white)](https://flow-kv9i.onrender.com/)
 [![Hugo Version](https://img.shields.io/badge/Hugo-Extended_v0.165.0+-FF4088?logo=hugo&logoColor=white)](https://gohugo.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero npm Required](https://img.shields.io/badge/Zero_npm-Hugo_Native-success.svg)](https://gohugo.io/)
 [![Search: Pagefind](https://img.shields.io/badge/Search-Pagefind-orange.svg)](https://pagefind.app/)
 [![Design: M3 + AMOLED](https://img.shields.io/badge/Design-AMOLED_%2F_M3-000000.svg)](#design--typography)
 
-![Flow Theme Preview](screenshot.png)
+[![Flow Theme Preview](screenshot.png)](https://flow-kv9i.onrender.com/)
+
+[**🔗 Explore the Live Demo →**](https://flow-kv9i.onrender.com/)
 
 ---
 
@@ -19,7 +22,7 @@ Most blog themes force readers into a repetitive cycle: scroll an index, click a
 
 **Flow reimagines blogging through the familiarity and efficiency of a desktop mail client** (think Superhuman, Apple Mail, or Fastmail). The screen splits into a persistent, scrollable message list on the left and a distraction-free reading pane on the right. Readers can browse your entire archive, filter by labels, and jump between articles instantly—without ever losing their place or context.
 
-Whether you're writing technical deep-dives, development logs, essays, or daily notes, **Flow gives your readers a premium, snappy, native-app feel backed by 100% static HTML.**
+Whether you're writing technical deep-dives, development logs, essays, or daily notes, **Flow gives your readers a premium, snappy, native-app feel backed by 100% static HTML.** Experience it firsthand at [flow-kv9i.onrender.com](https://flow-kv9i.onrender.com/).
 
 ---
 
