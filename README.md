@@ -68,12 +68,58 @@ Whether you're writing technical deep-dives, development logs, essays, or daily 
 
 ---
 
-## Development
+## ⌨️ Keyboard Shortcuts
 
-The project requires a minimum Hugo version of 0.165.0, because it uses `css.ChromaStyles` and `importContext` introduced in that version.
+Flow is designed keyboard-first for power users and writers:
 
-Run the following command for local development:
+| Key / Shortcut | Context | Action |
+| :--- | :--- | :--- |
+| <kbd>/</kbd> | Global | Focus & select search input |
+| <kbd>Cmd</kbd> + <kbd>K</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd> | Global | Focus & select search input |
+| <kbd>Escape</kbd> | Search Box | Clear query & restore full message list |
+| <kbd>Enter</kbd> | Search Box | Open first search result |
+| <kbd>←</kbd> / <kbd>→</kbd> | Resizer Divider | Adjust sidebar width by 16px |
+| <kbd>Home</kbd> / <kbd>End</kbd> | Resizer Divider | Snap sidebar to minimum (320px) or maximum width |
+| <kbd>Enter</kbd> / <kbd>Space</kbd> | Resizer Divider | Reset sidebar to default width (500px) |
+| <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> | Tag Strip | Traverses tags (auto-scrolls focused tag into view) |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+* **Hugo Extended** `>= 0.165.0` (required for `css.ChromaStyles` and `importContext`).
+  ```sh
+  hugo version
+  # Example output: hugo v0.165.0+extended ...
+  ```
+
+### Installation
+
+#### Option 1: As a Git Submodule (Recommended)
+Inside your Hugo site directory:
+```sh
+git submodule add https://github.com/BiosPlus/flow.git theme/flow
+```
+Add Flow to your `hugo.toml`:
+```toml
+theme = "flow"
+```
+
+#### Option 2: Clone Directly
+```sh
+git clone https://github.com/BiosPlus/flow.git theme/flow
+```
+
+---
+
+## 🛠️ Development
+
+Run the Hugo development server with the `--disableFastRender` flag:
+
 ```sh
 hugo server --disableFastRender
 ```
-The `--disableFastRender` flag is **mandatory**. Every page's HTML depends on every other page due to the embedded list, and fast render will serve stale lists.
+
+> [!IMPORTANT]
+> The `--disableFastRender` flag is **mandatory** during local development. Because Flow embeds the message list and pagination context across pages, fast render may serve stale sidebar lists when navigating between posts.
