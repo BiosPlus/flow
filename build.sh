@@ -6,9 +6,11 @@
 # This script prepares the production build environment on Render.com:
 #   1. Downloads and installs Hugo Extended v0.165.0 with SHA-256 integrity check.
 #   2. Installs Node.js LTS (if not present) for running Pagefind search indexing.
-#   3. Optionally executes media asset transcoding (JXL/WebM).
-#   4. Compiles and minifies the Hugo static site to the `build/` directory.
-#   5. Runs Pagefind to generate static search indexes for client-side search.
+#   3. Installs cjxl (JPEG XL tools) for media asset transcoding.
+#   4. Verifies toolchain installation and versions.
+#   5. Optionally executes media asset transcoding (JXL/WebM).
+#   6. Compiles and minifies the Hugo static site to the `build/` directory.
+#   7. Runs Pagefind to generate static search indexes for client-side search.
 #
 # NOTE: This script is reserved for Render.com CI/CD. Do not run locally.
 # ==============================================================================
@@ -57,17 +59,40 @@ if ! command -v npx &> /dev/null; then
 fi
 
 # ------------------------------------------------------------------------------
-# Step 3: Verify Toolchain Versions
+# Step 3: Ensure cjxl is Available for JPEG XL Media Transcoding
+# ------------------------------------------------------------------------------
+if ! command -v cjxl &> /dev/null; then
+  echo "cjxl not found. Installing libjxl tools..."
+  JXL_VERSION="0.12.0"
+  mkdir -p "${HOME}/libjxl"
+  mkdir -p /tmp/jxl
+  cd /tmp/jxl
+  wget -q "https://github.com/libjxl/libjxl/releases/download/v${JXL_VERSION}/jxl-debs-amd64-ubuntu-22.04.tar" -O jxl-debs.tar
+  tar -xf jxl-debs.tar
+  for deb in *.deb; do
+    if [ -f "$deb" ]; then
+      dpkg -x "$deb" "${HOME}/libjxl"
+    fi
+  done
+  export PATH="${HOME}/libjxl/usr/bin:${PATH}"
+  export LD_LIBRARY_PATH="${HOME}/libjxl/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}"
+fi
+
+# ------------------------------------------------------------------------------
+# Step 4: Verify Toolchain Versions
 # ------------------------------------------------------------------------------
 hugo version
 node -v
 npx -v
+if command -v cjxl &> /dev/null; then
+  cjxl --version || true
+fi
 
 # Return back to repository root directory
 cd "$ORIGINAL_DIR"
 
 # ------------------------------------------------------------------------------
-# Step 4: Media Asset Transcoding (Incremental JXL & WebM generation)
+# Step 5: Media Asset Transcoding (Incremental JXL & WebM generation)
 # ------------------------------------------------------------------------------
 if [ -f "./scripts/transcode-media.sh" ]; then
   echo "Invoking media transcoding at build time..."
@@ -75,14 +100,14 @@ if [ -f "./scripts/transcode-media.sh" ]; then
 fi
 
 # ------------------------------------------------------------------------------
-# Step 5: Build Static Site with Hugo
+# Step 6: Build Static Site with Hugo
 # ------------------------------------------------------------------------------
 # --gc: run garbage collection on unused cached assets
 # --minify: minify HTML, CSS, JS, and SVG output
 hugo --gc --minify
 
 # ------------------------------------------------------------------------------
-# Step 6: Generate Pagefind Search Index
+# Step 7: Generate Pagefind Search Index
 # ------------------------------------------------------------------------------
 # Indexes HTML articles in the `build/` directory for client-side search.js
 npx -y pagefind --site build
