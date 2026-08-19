@@ -2,7 +2,7 @@ baseURL = "/"
 locale = "en-au"
 title = "Flow Theme Demo"
 publishDir = "../build"
-themesDir = "../.."
+themesDir = "../themes"
 theme = "flow"
 
 [pagination]

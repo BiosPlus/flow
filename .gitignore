@@ -8,6 +8,5 @@ resources/
 Thumbs.db
 build/
 public/
-themes/
 static/pagefind/
 .pagefind/
