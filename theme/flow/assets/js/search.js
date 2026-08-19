@@ -5,8 +5,9 @@
  *  - Lazy Loading: Dynamically imports `/pagefind/pagefind.js` on first hover or focus.
  *  - Live Debounced Search: Executes search queries with 120ms debouncing, replacing sidebar rows in real time.
  *  - Deterministic Chip Color Hashing: Uses 32-bit FNV-1a hash mod 8 matching Hugo's Go template `chip.html`.
- *  - State Preservation: Caches original sidebar HTML and restores it when query is cleared.
+ *  - State Preservation: Caches original sidebar DOM nodes and restores them when query is cleared.
  *  - Race Condition Protection: Monotonic search IDs prevent out-of-order async resolution.
+ *  - Safe DOM Construction: Zero innerHTML usage with strict excerpt sanitization preventing XSS.
  *  - Keyboard Shortcuts:
  *      * `/` or `Cmd+K` / `Ctrl+K`: Focus and select search input.
  *      * `Escape`: Clear search and restore previous message list.
@@ -38,7 +39,7 @@
 
   let pagefind = null;
   let pagefindLoading = null;
-  let originalListHtml = '';
+  let originalNodes = [];
   let originalCountText = '';
   let originalTotal = '';
   let debounceTimer = null;
@@ -64,28 +65,86 @@
   }
 
   /**
-   * Escapes HTML entities to prevent XSS injection in search excerpts and metadata.
-   * @param {string} str - Raw string.
-   * @returns {string} Escaped HTML-safe string.
+   * Validates and sanitizes URLs to prevent javascript: or unsafe scheme injection.
+   * @param {string} url - Target URL string.
+   * @returns {string} Sanitized URL safe for href attribute.
    */
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  function sanitizeUrl(url) {
+    if (!url || typeof url !== 'string') return '#';
+    const trimmed = url.trim();
+    if (trimmed.startsWith('/') || trimmed.startsWith('#') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+      return trimmed;
+    }
+    try {
+      const parsed = new URL(trimmed, window.location.origin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.href;
+      }
+    } catch (e) {}
+    return '#';
   }
 
   /**
-   * Captures the default unsearched HTML and counter state of the sidebar message list.
+   * Normalizes a URL to a trailing-slash pathname for deterministic comparisons.
+   * @param {string} url - The URL or pathname string.
+   * @returns {string} Normalized pathname.
+   */
+  function normalizeUrl(url) {
+    if (!url) return '/';
+    try {
+      const parsed = new URL(url, window.location.origin);
+      let path = parsed.pathname;
+      if (!path.endsWith('/') && !path.includes('.')) {
+        path += '/';
+      }
+      return path;
+    } catch (e) {
+      return url;
+    }
+  }
+
+  /**
+   * Safely renders a search snippet into a container node.
+   * Parses the input and strictly allows only text nodes and <mark> elements,
+   * completely neutralizing any malicious scripts, elements, attributes, or event listeners.
+   * @param {HTMLElement} container - Target container element.
+   * @param {string} rawHtmlOrText - Raw HTML or text snippet from search results.
+   */
+  function renderSafeSnippet(container, rawHtmlOrText) {
+    if (!rawHtmlOrText) return;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtmlOrText, 'text/html');
+
+    function appendSanitizedNodes(sourceParent, targetParent) {
+      for (const node of sourceParent.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          targetParent.appendChild(document.createTextNode(node.textContent));
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const tagName = node.tagName.toLowerCase();
+          if (tagName === 'mark') {
+            const mark = document.createElement('mark');
+            appendSanitizedNodes(node, mark);
+            targetParent.appendChild(mark);
+          } else {
+            // For any other element tag, strip the tag and keep only sanitized inner text/marks
+            appendSanitizedNodes(node, targetParent);
+          }
+        }
+      }
+    }
+
+    appendSanitizedNodes(doc.body, container);
+  }
+
+  /**
+   * Captures the default unsearched DOM nodes and counter state of the sidebar message list.
    */
   function captureOriginalState() {
     const container = getListContainer();
     const count = getListCount();
     if (container) {
-      originalListHtml = container.innerHTML;
+      originalNodes = Array.from(container.childNodes).map(n => n.cloneNode(true));
     }
     if (count) {
       originalCountText = count.textContent;
@@ -153,8 +212,8 @@
     const count = getListCount();
     const pager = getListPager();
 
-    if (container && originalListHtml) {
-      container.innerHTML = originalListHtml;
+    if (container && originalNodes.length > 0) {
+      container.replaceChildren(...originalNodes.map(n => n.cloneNode(true)));
     }
     if (count && originalCountText) {
       count.textContent = originalCountText;
@@ -165,36 +224,76 @@
   }
 
   /**
-   * Generates markup for an individual tag chip with deterministic FNV32a color index.
+   * Creates a DOM element for an individual tag chip with deterministic FNV32a color index.
    * @param {string} tag - Tag name.
-   * @returns {string} Tag chip HTML.
+   * @returns {HTMLElement} Tag chip <span> element.
    */
-  function renderChip(tag) {
+  function createChip(tag) {
     const idx = fnv32a(tag);
-    return `<span class="chip chip--${idx}">${escapeHtml(tag)}</span>`;
+    const chip = document.createElement('span');
+    chip.className = `chip chip--${idx}`;
+    chip.textContent = tag;
+    return chip;
   }
 
   /**
-   * Renders a search result row styled identically to standard message rows.
+   * Creates a DOM element for a search result row styled identically to standard message rows.
    * @param {object} item - Pagefind result data object.
-   * @returns {string} Message row HTML.
+   * @returns {HTMLElement} Message row <a> element.
    */
-  function renderResultRow(item) {
-    const currentPath = window.location.pathname;
-    const isCurrent = (item.url === currentPath) || (item.url === currentPath + '/') || (currentPath === item.url + '/');
-    const rowClass = isCurrent ? 'current-row message-row' : 'message-row';
-    const ariaCurrent = isCurrent ? ' aria-current="page"' : '';
+  function createResultRow(item) {
+    const currentPath = normalizeUrl(window.location.pathname);
+    const itemPath = item.url ? normalizeUrl(item.url) : '';
+    const isCurrent = (itemPath === currentPath);
 
-    let dateStr = item.meta && item.meta.date ? escapeHtml(item.meta.date) : '';
-    let readTimeStr = item.meta && item.meta.readingTime ? escapeHtml(item.meta.readingTime) : '';
+    const row = document.createElement('a');
+    row.href = sanitizeUrl(item.url);
+    row.className = isCurrent ? 'current-row message-row' : 'message-row';
+    if (isCurrent) {
+      row.setAttribute('aria-current', 'page');
+    }
+
+    // Row Header (Subject + Date)
+    const header = document.createElement('div');
+    header.className = 'row-header';
+
+    const subject = document.createElement('div');
+    subject.className = 'row-subject';
+    subject.textContent = (item.meta && item.meta.title) ? item.meta.title : 'Untitled';
+    header.appendChild(subject);
+
+    if (item.meta && item.meta.date) {
+      const date = document.createElement('span');
+      date.className = 'row-date';
+      date.textContent = item.meta.date;
+      header.appendChild(date);
+    }
+    row.appendChild(header);
+
+    // Row Snippet
+    const snippet = document.createElement('div');
+    snippet.className = 'row-snippet';
+    const rawSnippet = item.excerpt || (item.meta && item.meta.summary ? item.meta.summary : '');
+    renderSafeSnippet(snippet, rawSnippet);
+    row.appendChild(snippet);
+
+    // Row Footer (Read Time + Tag Chips)
+    const footer = document.createElement('div');
+    footer.className = 'row-footer';
+
+    let readTimeStr = item.meta && item.meta.readingTime ? item.meta.readingTime : '';
     if (readTimeStr && !readTimeStr.includes('min read')) {
       readTimeStr += ' min read';
     }
-    const readTimeHtml = readTimeStr
-      ? `<span class="row-read-time">${readTimeStr}</span>`
-      : '<span></span>';
-    const titleStr = item.meta && item.meta.title ? escapeHtml(item.meta.title) : 'Untitled';
-    const snippetHtml = item.excerpt || (item.meta && item.meta.summary ? escapeHtml(item.meta.summary) : '');
+
+    if (readTimeStr) {
+      const readTime = document.createElement('span');
+      readTime.className = 'row-read-time';
+      readTime.textContent = readTimeStr;
+      footer.appendChild(readTime);
+    } else {
+      footer.appendChild(document.createElement('span'));
+    }
 
     let tags = [];
     if (item.filters && item.filters.tag) {
@@ -203,25 +302,17 @@
       tags = item.meta.tags.split(',').map(t => t.trim()).filter(Boolean);
     }
 
-    const tagsHtml = tags.length > 0
-      ? `<div class="row-chips">${tags.map(renderChip).join('')}</div>`
-      : '';
+    if (tags.length > 0) {
+      const chips = document.createElement('div');
+      chips.className = 'row-chips';
+      tags.forEach(tag => {
+        chips.appendChild(createChip(tag));
+      });
+      footer.appendChild(chips);
+    }
 
-    return `
-      <a href="${escapeHtml(item.url)}" class="${rowClass}"${ariaCurrent}>
-        <div class="row-header">
-          <div class="row-subject">${titleStr}</div>
-          ${dateStr ? `<span class="row-date">${dateStr}</span>` : ''}
-        </div>
-        <div class="row-snippet">
-          ${snippetHtml}
-        </div>
-        <div class="row-footer">
-          ${readTimeHtml}
-          ${tagsHtml}
-        </div>
-      </a>
-    `;
+    row.appendChild(footer);
+    return row;
   }
 
   /**
@@ -252,12 +343,20 @@
 
     if (!pf) {
       if (container) {
-        container.innerHTML = `
-          <div class="search-empty-state">
-            <div>Search index is not built yet.</div>
-            <div class="search-empty-hint">Run <code>npx pagefind --site build</code> to generate the search index.</div>
-          </div>
-        `;
+        const emptyState = document.createElement('div');
+        emptyState.className = 'search-empty-state';
+        const msg = document.createElement('div');
+        msg.textContent = 'Search index is not built yet.';
+        const hint = document.createElement('div');
+        hint.className = 'search-empty-hint';
+        hint.appendChild(document.createTextNode('Run '));
+        const code = document.createElement('code');
+        code.textContent = 'npx pagefind --site build';
+        hint.appendChild(code);
+        hint.appendChild(document.createTextNode(' to generate the search index.'));
+        emptyState.appendChild(msg);
+        emptyState.appendChild(hint);
+        container.replaceChildren(emptyState);
       }
       if (count) {
         count.textContent = `0 results for "${cleanQuery}"`;
@@ -271,11 +370,16 @@
 
       if (!search.results || search.results.length === 0) {
         if (container) {
-          container.innerHTML = `
-            <div class="search-empty-state">
-              <div>No posts matching "<strong>${escapeHtml(cleanQuery)}</strong>"</div>
-            </div>
-          `;
+          const emptyState = document.createElement('div');
+          emptyState.className = 'search-empty-state';
+          const msg = document.createElement('div');
+          msg.appendChild(document.createTextNode('No posts matching "'));
+          const strong = document.createElement('strong');
+          strong.textContent = cleanQuery;
+          msg.appendChild(strong);
+          msg.appendChild(document.createTextNode('"'));
+          emptyState.appendChild(msg);
+          container.replaceChildren(emptyState);
         }
         if (count) {
           count.textContent = `0 of ${originalTotal || '0'} results`;
@@ -291,16 +395,21 @@
         count.textContent = `1 to ${dataResults.length} of ${dataResults.length} results`;
       }
       if (container) {
-        container.innerHTML = dataResults.map(renderResultRow).join('');
+        const fragment = document.createDocumentFragment();
+        dataResults.forEach(item => {
+          fragment.appendChild(createResultRow(item));
+        });
+        container.replaceChildren(fragment);
       }
     } catch (err) {
       console.error('[Pagefind] Search error:', err);
       if (searchId === currentSearchId && container) {
-        container.innerHTML = `
-          <div class="search-empty-state">
-            <div>Error executing search.</div>
-          </div>
-        `;
+        const emptyState = document.createElement('div');
+        emptyState.className = 'search-empty-state';
+        const msg = document.createElement('div');
+        msg.textContent = 'Error executing search.';
+        emptyState.appendChild(msg);
+        container.replaceChildren(emptyState);
       }
     }
   }
