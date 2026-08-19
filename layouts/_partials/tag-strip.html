@@ -1,0 +1,59 @@
+{{/*
+  layouts/_partials/tag-strip.html
+  Sub-bar Horizontal Tag Selector Strip:
+  - Placed in the right column of the sub-bar above the reading pane.
+  - "all": Default tab showing all posts.
+  - Pinned Tags (`site.Params.pinnedTags`): Rendered first with their post counts.
+  - Remaining Tags: Rendered in descending order of post count.
+  - "all tags": Link to the full tag directory (/tags/).
+  - Supports keyboard focus auto-scrolling via `scroll-memory.js`.
+*/}}
+{{ $isAll := or (eq .Kind "home") (eq .Kind "section") (eq .Kind "page") }}
+
+{{ $currentTag := "" }}
+{{ if eq .Kind "term" }}
+  {{ $currentTag = .Data.Term }}
+{{ end }}
+
+<div class="tag-strip-container">
+  <div class="tag-strip">
+    {{/* "all" posts default tab */}}
+    <a href="{{ site.Home.RelPermalink }}" class="tag-strip-item {{ if $isAll }}current{{ end }}" {{ if $isAll }}aria-current="page"{{ end }}>
+      all
+    </a>
+
+    {{ if site.Taxonomies.tags }}
+      {{ $renderedTags := dict }}
+
+      {{/* Render pinned tags first */}}
+      {{ if site.Params.pinnedTags }}
+        {{ range site.Params.pinnedTags }}
+          {{ $tagTaxonomy := index site.Taxonomies.tags . }}
+          {{ if $tagTaxonomy }}
+            {{ $renderedTags = merge $renderedTags (dict . true) }}
+            {{ $isCurrent := eq $currentTag (lower .) }}
+            <a href="{{ (printf "tags/%s/" (. | urlize)) | relLangURL }}" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
+              {{ . }} <span class="tag-count">{{ len $tagTaxonomy }}</span>
+            </a>
+          {{ end }}
+        {{ end }}
+      {{ end }}
+
+      {{/* Render remaining tags ordered by post count */}}
+      {{ range site.Taxonomies.tags.ByCount }}
+        {{ if not (index $renderedTags .Term) }}
+          {{ $isCurrent := eq $currentTag (lower .Term) }}
+          <a href="{{ (printf "tags/%s/" (.Term | urlize)) | relLangURL }}" class="tag-strip-item {{ if $isCurrent }}current{{ end }}" {{ if $isCurrent }}aria-current="page"{{ end }}>
+            {{ .Term }} <span class="tag-count">{{ .Count }}</span>
+          </a>
+        {{ end }}
+      {{ end }}
+
+      {{/* Link to the complete taxonomy overview page */}}
+      {{ $isAllTags := eq .Kind "taxonomy" }}
+      <a href="{{ "tags/" | relLangURL }}" class="tag-strip-item {{ if $isAllTags }}current{{ end }}" {{ if $isAllTags }}aria-current="page"{{ end }}>
+        all tags
+      </a>
+    {{ end }}
+  </div>
+</div>

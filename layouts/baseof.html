@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+{{/*
+  layouts/baseof.html
+  Master base HTML template providing the desktop email client layout skeleton.
+  - Adds .k-{{ .Kind }} class to <html> for page-kind specific CSS targeting (e.g. mobile visibility).
+  - Landmark regions: Header (Toolbar), Sub-bar (Search & Tag Strip), Split-pane (.list-pane & .reading-pane).
+  - Pagefind search indexer ignores navigation regions via `data-pagefind-ignore`.
+*/}}
+<html class="k-{{ .Kind }}" lang="{{ site.Language.Locale | default site.Language.Lang | default "en" }}" data-base-url="{{ site.Home.RelPermalink }}">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body>
+  {{/* Accessible skip-to-content link for keyboard / screen-reader navigation */}}
+  <a href="#reading" class="skip-link">Skip to content</a>
+
+  {{/* Top application toolbar with site title and newer/older navigation */}}
+  <header aria-label="Site title and pagination" data-pagefind-ignore>
+    {{ partial "toolbar.html" . }}
+  </header>
+
+  {{/* 2-Column sub-bar holding search box (left) and horizontal tag strip (right) */}}
+  <div class="sub-bar" data-pagefind-ignore>
+    <div class="search-pane">
+      {{ partial "search-bar.html" . }}
+    </div>
+    <div class="sub-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize sidebar (Double-click to reset)"></div>
+    <nav class="tag-pane" aria-label="Tags">
+      {{ partial "tag-strip.html" . }}
+    </nav>
+  </div>
+
+  {{/* Split-pane workspace: message list (left) & reading pane (right) */}}
+  <div class="layout-wrapper">
+    <nav class="list-pane" aria-label="Message list" data-pagefind-ignore>
+      {{ block "message-list" . }}{{ end }}
+    </nav>
+    <div class="split-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize sidebar (Double-click to reset)"></div>
+    <main id="reading" class="reading-pane">
+      {{ block "main" . }}{{ end }}
+    </main>
+  </div>
+
+</body>
+</html>

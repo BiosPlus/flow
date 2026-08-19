@@ -102,9 +102,13 @@ fi
 # ------------------------------------------------------------------------------
 # Step 6: Build Static Site with Hugo
 # ------------------------------------------------------------------------------
+# Ensure theme directory symlink exists for CI environments (e.g. Render /opt/render/project/src)
+mkdir -p "${ORIGINAL_DIR}/themes"
+ln -sfn "${ORIGINAL_DIR}" "${ORIGINAL_DIR}/themes/flow"
+
 # --gc: run garbage collection on unused cached assets
 # --minify: minify HTML, CSS, JS, and SVG output
-hugo --gc --minify
+hugo --source exampleSite --themesDir ../themes --theme flow --gc --minify
 
 # ------------------------------------------------------------------------------
 # Step 7: Generate Pagefind Search Index

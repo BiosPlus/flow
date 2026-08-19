@@ -1,0 +1,29 @@
+{{/*
+  layouts/taxonomy.html
+  Tags directory template (/tags/):
+  - "main": Renders an overview list of all taxonomy terms sorted by post count with pill links.
+  - "message-list": Keeps the full post message list accessible in the sidebar.
+*/}}
+{{ define "main" }}
+  <div>
+    <h1>Tags</h1>
+    {{/* List all tags sorted descending by number of posts */}}
+    {{ $tags := site.Taxonomies.tags }}
+    <ul class="taxonomy-list">
+      {{ range $tags.ByCount }}
+        <li class="taxonomy-item">
+          <a href="{{ .Page.RelPermalink }}" class="taxonomy-link">
+            <span class="taxonomy-name">{{ .Term }}</span>
+            <span class="taxonomy-count">{{ .Count }}</span>
+          </a>
+        </li>
+      {{ end }}
+    </ul>
+  </div>
+{{ end }}
+
+{{ define "message-list" }}
+  {{ $pages := where site.RegularPages "Section" "posts" }}
+  {{ $paginator := .Paginate $pages }}
+  {{ partial "message-list.html" (dict "Pages" $paginator.Pages "Current" . "Paginator" $paginator) }}
+{{ end }}

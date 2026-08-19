@@ -1,42 +1,43 @@
-# Base URL of the site (used for generating canonical and absolute URLs)
-baseURL = "/"
+# Flow Theme Configuration Defaults
 
-# Default locale for language and date formatting
-locale = "en-au"
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.165.0"
 
-# Site title displayed in browser tabs and the header toolbar
-title = "Your site title"
+# Default pagination size across theme lists
+paginate = 25
 
-# Output directory for production builds (rendered via `hugo --gc --minify`)
-publishDir = "build"
+[markup]
+  # Syntax highlighting configuration via Chroma
+  [markup.highlight]
+    # Use CSS classes rather than inline styles (styles are built dynamically in head.html)
+    noClasses = false
+    # Do not output line numbers by default
+    lineNos = false
+    # Indentation tab width
+    tabWidth = 2
+    # CSS wrapper class name for code blocks (styled as breakout cards in reading.css)
+    wrapperClass = "highlight"
 
-# Location where theme folders reside
-themesDir = "theme"
+  # Goldmark Markdown rendering engine settings
+  [markup.goldmark.renderer]
+    # Keep unsafe = false to enforce safe HTML parsing and sanitization
+    unsafe = false
 
-# Active theme name corresponding to folder in themesDir
-theme = "flow"
+  # Table of Contents configuration for single post views
+  [markup.tableOfContents]
+    # Starting heading level (h2)
+    startLevel = 2
+    # Ending heading level (h3)
+    endLevel = 3
 
-# Pagination settings
-[pagination]
-  # Number of posts per page in lists and pagination calculations
-  pagerSize = 25
+[services]
+  [services.rss]
+    # Maximum number of posts included in feed outputs
+    limit = 50
 
-# Taxonomy definitions
-[taxonomies]
-  tag = "tags"
-
-# Site-wide custom parameters accessible via `site.Params`
-[params]
-  # Short site description shown in empty state and header toolbar
-  description = "A short line about the site."
-
-  # Pinned tags displayed prominently at the start of the horizontal tag strip
-  pinnedTags = ["thought", "tip"]
-
-  # Fallback pager size matching pagination.pagerSize for template calculations
-  pagerSize = 25
-
-# Atom 1.0 & RSS Feed Configuration
+# Atom 1.0 Feed Configuration
 [mediaTypes]
   [mediaTypes."application/atom+xml"]
     suffixes = ["xml"]
@@ -53,5 +54,3 @@ theme = "flow"
   section = ["html", "Atom", "rss"]
   taxonomy = ["html", "Atom", "rss"]
   term = ["html", "Atom", "rss"]
-
-
