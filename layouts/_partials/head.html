@@ -1,0 +1,71 @@
+{{/*
+  layouts/_partials/head.html
+  HTML <head> partial:
+  - Charset, viewport, and responsive meta tags.
+  - SEO-friendly title formatting and truncated description meta tags.
+  - Native Hugo Extended asset pipeline bundling (css.Build, js.Build) with Subresource Integrity (SRI) fingerprinting.
+*/}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+{{/* Page Title: "Site Title — Site Description" for homepage; "Post Title · Site Title" for other pages */}}
+<title>{{ if .IsHome }}{{ site.Title }}{{ with site.Params.description }} — {{ . }}{{ end }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
+
+{{/* Meta description fallback cascade: Frontmatter description -> Post summary -> Site description */}}
+{{ $desc := .Description | default .Summary | default site.Params.description }}
+{{ with $desc }}
+<meta name="description" content="{{ . | plainify | truncate 160 }}">
+{{ end }}
+
+{{/* Feed Auto-Discovery (Atom & RSS) */}}
+{{ range .AlternativeOutputFormats -}}
+  <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}" title="{{ if $.IsHome }}{{ site.Title }}{{ else }}{{ printf "%s · %s" $.Title site.Title }}{{ end }}">
+{{ end -}}
+{{ if not .AlternativeOutputFormats }}
+  {{ with site.Home.OutputFormats.Get "Atom" }}
+    <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}" title="{{ site.Title }}">
+  {{ end }}
+  {{ with site.Home.OutputFormats.Get "rss" }}
+    <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}" title="{{ site.Title }}">
+  {{ end }}
+{{ end }}
+
+{{/* Build and fingerprint master CSS bundle with production minification */}}
+{{ $opts := dict
+  "minify" hugo.IsProduction
+}}
+
+{{ with resources.Get "css/main.css" | css.Build $opts }}
+  {{ $css := . | fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+{{ end }}
+
+{{/* Instant sidebar width restoration before paint to eliminate layout shift */}}
+<script>
+  (function() {
+    try {
+      var w = localStorage.getItem('flow_sidebar_width');
+      if (w) {
+        var v = parseInt(w, 10);
+        if (!isNaN(v) && v >= 320 && v <= 1200) {
+          document.documentElement.style.setProperty('--sidebar-width', v + 'px');
+        }
+      }
+    } catch(e) {}
+  })();
+</script>
+
+{{/* Bundle, minify, and fingerprint scroll-memory.js */}}
+{{ with resources.Get "js/scroll-memory.js" | js.Build | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
+
+{{/* Bundle, minify, and fingerprint search.js */}}
+{{ with resources.Get "js/search.js" | js.Build | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
+
+{{/* Bundle, minify, and fingerprint resize.js */}}
+{{ with resources.Get "js/resize.js" | js.Build | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}

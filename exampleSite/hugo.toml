@@ -1,0 +1,17 @@
+baseURL = "/"
+locale = "en-au"
+title = "Flow Theme Demo"
+publishDir = "../build"
+themesDir = "../.."
+theme = "flow"
+
+[pagination]
+  pagerSize = 25
+
+[taxonomies]
+  tag = "tags"
+
+[params]
+  description = "A clean, responsive blog presented as a desktop email client."
+  pinnedTags = ["thought", "tip"]
+  pagerSize = 25

@@ -104,7 +104,7 @@ fi
 # ------------------------------------------------------------------------------
 # --gc: run garbage collection on unused cached assets
 # --minify: minify HTML, CSS, JS, and SVG output
-hugo --gc --minify
+hugo --source exampleSite --themesDir ../.. --theme flow --gc --minify
 
 # ------------------------------------------------------------------------------
 # Step 7: Generate Pagefind Search Index

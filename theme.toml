@@ -1,0 +1,21 @@
+# Theme Metadata for Flow Hugo Theme
+name = "flow"
+license = "MIT"
+licenselink = "https://github.com/BiosPlus/flow/blob/main/LICENSE"
+description = "A clean, responsive blog theme presented as a desktop email client."
+homepage = "https://github.com/BiosPlus/flow"
+demosite = "https://flow-kv9i.onrender.com/"
+tags = ["blog", "minimal", "email", "clean", "dark-mode", "chroma", "responsive", "pagefind"]
+features = [
+  "Desktop mail client interface and layout",
+  "Dynamic syntax highlighting with light and dark Chroma styles",
+  "Instant client-side tag filtering and Pagefind search",
+  "Interactive sidebar resizing with persistent width memory",
+  "Full Atom 1.0 and RSS feed integration",
+  "Zero JavaScript fallback for core reading experience"
+]
+min_version = "0.165.0"
+
+[author]
+  name = "BiosPlus"
+  homepage = "https://github.com/BiosPlus"
