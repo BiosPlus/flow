@@ -27,7 +27,10 @@
           return val;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // LocalStorage access may fail if cookies/storage are blocked or in restricted iframe sandbox
+      console.warn('Failed to read sidebar width from localStorage:', e);
+    }
     return null;
   }
 
@@ -44,7 +47,10 @@
     if (persist) {
       try {
         localStorage.setItem(STORAGE_KEY, clamped);
-      } catch (e) {}
+      } catch (e) {
+        // LocalStorage access may fail due to quota limits or privacy restrictions
+        console.warn('Failed to save sidebar width to localStorage:', e);
+      }
     }
     return clamped;
   }
@@ -57,7 +63,10 @@
     });
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
+    } catch (e) {
+      // LocalStorage access may fail if storage is restricted
+      console.warn('Failed to remove sidebar width from localStorage:', e);
+    }
   }
 
   function initResizer(el) {
@@ -105,7 +114,10 @@
         if (el.hasPointerCapture(e.pointerId)) {
           el.releasePointerCapture(e.pointerId);
         }
-      } catch (err) {}
+      } catch (err) {
+        // Pointer capture may have been lost or already released implicitly
+        console.warn('Failed to release pointer capture:', err);
+      }
 
       const deltaX = e.clientX - startX;
       const newWidth = startWidth + deltaX;
