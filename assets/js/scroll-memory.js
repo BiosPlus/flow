@@ -395,6 +395,105 @@
   }
 
   /**
+   * Fetches and caches sanitized list pane nodes for a given tag URL.
+   * @param {string} tagUrl - Normalized tag URL.
+   * @returns {Promise<Node[]|null>} Array of sanitized DOM nodes or null.
+   */
+  async function fetchTagNodes(tagUrl) {
+    let cachedNodes = tagListCache.get(tagUrl);
+    if (!cachedNodes) {
+      const res = await fetch(tagUrl);
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const text = await res.text();
+      cachedNodes = extractSanitizedListPaneNodes(text);
+      if (cachedNodes) {
+        tagListCache.set(tagUrl, cloneNodes(cachedNodes));
+      }
+    }
+    return cachedNodes;
+  }
+
+  /**
+   * Updates sidebar scroll position according to filtering options.
+   * @param {HTMLElement} listPane - The sidebar list pane container.
+   * @param {boolean} resetScroll - Whether to scroll to top and clear saved scroll position.
+   */
+  function updateListScrollState(listPane, resetScroll) {
+    if (resetScroll) {
+      listPane.scrollTop = 0;
+      sessionStorage.removeItem(SCROLL_KEY);
+    } else {
+      restoreScrollPosition();
+    }
+  }
+
+  /**
+   * Highlights the message row corresponding to current page location.
+   * @param {HTMLElement} container - The container element holding .message-row elements.
+   */
+  function updateActivePostRow(container) {
+    const currentPath = normalizeUrl(window.location.pathname);
+    const rows = container.querySelectorAll('.message-row');
+    rows.forEach(row => {
+      const href = normalizeUrl(row.getAttribute('href'));
+      const isCurrent = (href === currentPath);
+      row.classList.toggle('current-row', isCurrent);
+      if (isCurrent) {
+        row.setAttribute('aria-current', 'page');
+      } else {
+        row.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  /**
+   * Updates the active tab state in tag-strip and scrolls it into view.
+   * @param {HTMLElement|null} tagStrip - The tag strip container element.
+   * @param {string} tagUrl - The active tag URL.
+   */
+  function updateTagStripState(tagStrip, tagUrl) {
+    if (!tagStrip) return;
+    const homeUrl = getBaseUrl();
+    tagStrip.querySelectorAll('.tag-strip-item').forEach(item => {
+      const itemHref = normalizeUrl(item.getAttribute('href'));
+      const isMatch = (itemHref === tagUrl) || (tagUrl === homeUrl && itemHref === homeUrl);
+      item.classList.toggle('current', isMatch);
+      if (isMatch) {
+        item.setAttribute('aria-current', 'page');
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } else {
+        item.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  /**
+   * Updates mobile back-to-list navigation href to match active filter.
+   * @param {string} tagUrl - Active tag URL.
+   */
+  function updateBackToListLink(tagUrl) {
+    const backToList = document.querySelector('.back-to-list');
+    if (backToList) {
+      const homeUrl = getBaseUrl();
+      const targetHref = tagUrl === homeUrl ? homeUrl : tagUrl;
+      backToList.setAttribute('href', sanitizeUrl(targetHref));
+    }
+  }
+
+  /**
+   * Persists or clears active tag filter state in sessionStorage.
+   * @param {string} tagUrl - Active tag URL.
+   */
+  function persistActiveTag(tagUrl) {
+    const homeUrl = getBaseUrl();
+    if (tagUrl === homeUrl || tagUrl === '' || tagUrl === '/') {
+      sessionStorage.removeItem(ACTIVE_TAG_KEY);
+    } else {
+      sessionStorage.setItem(ACTIVE_TAG_KEY, tagUrl);
+    }
+  }
+
+  /**
    * Dynamically fetches and renders posts for a tag without full page reload.
    * @param {string} rawTagUrl - Target tag URL.
    * @param {object} [options] - Filtering options.
@@ -405,86 +504,22 @@
     const tagUrl = normalizeUrl(rawTagUrl);
     const listPane = document.querySelector('.list-pane');
     const tagStrip = document.querySelector('.tag-strip');
-    if (!listPane) return;
+    if (!listPane || isTagFiltering) return;
 
-    if (isTagFiltering) return;
     isTagFiltering = true;
-
     listPane.classList.add('is-filtering');
 
     try {
-      let cachedNodes = tagListCache.get(tagUrl);
-      if (!cachedNodes) {
-        const res = await fetch(tagUrl);
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        const text = await res.text();
-        cachedNodes = extractSanitizedListPaneNodes(text);
-        if (cachedNodes) {
-          tagListCache.set(tagUrl, cloneNodes(cachedNodes));
-        }
-      }
-
+      const cachedNodes = await fetchTagNodes(tagUrl);
       if (cachedNodes && cachedNodes.length > 0) {
         listPane.replaceChildren(...cloneNodes(cachedNodes));
+        updateListScrollState(listPane, resetScroll);
+        updateActivePostRow(listPane);
+        updateTagStripState(tagStrip, tagUrl);
+        updateBackToListLink(tagUrl);
+        persistActiveTag(tagUrl);
 
-        if (resetScroll) {
-          listPane.scrollTop = 0;
-          sessionStorage.removeItem(SCROLL_KEY);
-        } else {
-          restoreScrollPosition();
-        }
-
-        // Highlight current post in the filtered list if present
-        const currentPath = normalizeUrl(window.location.pathname);
-        const rows = listPane.querySelectorAll('.message-row');
-        rows.forEach(row => {
-          const href = normalizeUrl(row.getAttribute('href'));
-          if (href === currentPath) {
-            row.classList.add('current-row');
-            row.setAttribute('aria-current', 'page');
-          } else {
-            row.classList.remove('current-row');
-            row.removeAttribute('aria-current');
-          }
-        });
-
-        // Update active tab state in tag-strip
-        if (tagStrip) {
-          const homeUrl = getBaseUrl();
-          tagStrip.querySelectorAll('.tag-strip-item').forEach(item => {
-            const itemHref = normalizeUrl(item.getAttribute('href'));
-            const isMatch = (itemHref === tagUrl) || (tagUrl === homeUrl && itemHref === homeUrl);
-            if (isMatch) {
-              item.classList.add('current');
-              item.setAttribute('aria-current', 'page');
-              item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-            } else {
-              item.classList.remove('current');
-              item.removeAttribute('aria-current');
-            }
-          });
-        }
-
-        // Update mobile back-to-list href to match active filter
-        const backToList = document.querySelector('.back-to-list');
-        if (backToList) {
-          const homeUrl = getBaseUrl();
-          const targetHref = tagUrl === homeUrl ? homeUrl : tagUrl;
-          backToList.setAttribute('href', sanitizeUrl(targetHref));
-        }
-
-        // Persist active tag filter in sessionStorage
-        const homeUrl = getBaseUrl();
-        if (tagUrl === homeUrl || tagUrl === '' || tagUrl === '/') {
-          sessionStorage.removeItem(ACTIVE_TAG_KEY);
-        } else {
-          sessionStorage.setItem(ACTIVE_TAG_KEY, tagUrl);
-        }
-
-        // Reconnect infinite scroll for the newly populated list
         initInfiniteScroll();
-
-        // Dispatch notification event for search.js and external listeners
         window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: tagUrl } }));
       }
     } catch (err) {
