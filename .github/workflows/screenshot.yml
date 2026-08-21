@@ -1,0 +1,64 @@
+name: Generate Screenshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_path:
+        description: 'Relative path of the post to capture'
+        required: false
+        default: 'posts/2022/01/art-of-reading-code/'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  screenshot:
+    name: Build & Capture Screenshot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Hugo Extended
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.165.0'
+          extended: true
+
+      - name: Build Example Site
+        run: |
+          mkdir -p themes
+          ln -sfn .. themes/flow
+          hugo --source exampleSite --themesDir ../themes --theme flow --gc --minify
+          npx -y pagefind --site build
+
+      - name: Install Playwright & Chromium
+        run: |
+          npm install -D playwright
+          npx playwright install --with-deps chromium
+
+      - name: Capture 1500x1000px Screenshot
+        env:
+          POST_PATH: ${{ github.event.inputs.post_path || 'posts/2022/01/art-of-reading-code/' }}
+          OUTPUT_PATH: 'images/screenshot.png'
+        run: |
+          node scripts/capture-screenshot.mjs
+
+      - name: Commit and Push Screenshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/screenshot.png
+          if git diff --staged --quiet; then
+            echo "No changes detected in images/screenshot.png"
+          else
+            git commit -m "chore(preview): update example site screenshot [skip ci]"
+            git push
+          fi

@@ -10,7 +10,7 @@
 [![Search: Pagefind](https://img.shields.io/badge/Search-Pagefind-orange.svg)](https://pagefind.app/)
 [![Design: M3 + AMOLED](https://img.shields.io/badge/Design-AMOLED_%2F_M3-000000.svg)](#design--typography)
 
-[![Flow Theme Preview](screenshot.png)](https://flow-kv9i.onrender.com/)
+[![Flow Theme Preview](images/screenshot.png)](https://flow-kv9i.onrender.com/)
 
 [**🔗 Explore the Live Demo →**](https://flow-kv9i.onrender.com/)
 
@@ -276,7 +276,10 @@ flow/
 │   └── images/              # Source images (.png, .jpg, .gif)
 ├── content/
 │   └── posts/               # Blog posts organized by year/month
+├── images/                  # Theme preview screenshots
+│   └── screenshot.png
 ├── scripts/
+│   ├── capture-screenshot.mjs # Script to render & capture post screenshot
 │   └── transcode-media.sh   # Incremental JXL & WebM media optimization script
 ├── theme/
 │   └── flow/                # Flow theme directory
