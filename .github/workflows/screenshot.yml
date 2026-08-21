@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -47,18 +49,24 @@ jobs:
       - name: Capture 1500x1000px Screenshot
         env:
           POST_PATH: ${{ github.event.inputs.post_path || 'posts/2022/01/art-of-reading-code/' }}
-          OUTPUT_PATH: 'images/screenshot.png'
+          OUTPUT_PATH: '/tmp/screenshot.png'
         run: |
           node scripts/capture-screenshot.mjs
 
-      - name: Commit and Push Screenshot
+      - name: Push Screenshot to static-asset_screenshot Branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Switch to an isolated orphan branch
+          git checkout --orphan static-asset_screenshot
+          git rm -rf .
+
+          # Place and stage the newly rendered screenshot
+          mkdir -p images
+          cp /tmp/screenshot.png images/screenshot.png
           git add images/screenshot.png
-          if git diff --staged --quiet; then
-            echo "No changes detected in images/screenshot.png"
-          else
-            git commit -m "chore(preview): update example site screenshot [skip ci]"
-            git push
-          fi
+
+          # Force push a single commit to keep git history zero-bloat
+          git commit -m "chore(preview): update example site screenshot [skip ci]"
+          git push --force origin static-asset_screenshot
