@@ -30,22 +30,141 @@ if [ ! -d "${IMAGES_DIR}" ]; then
   exit 0
 fi
 
+# Prepend user toolchain paths if available
+if [ -d "${HOME}/bin" ]; then
+  export PATH="${HOME}/bin:${PATH}"
+fi
+if [ -d "${HOME}/.local/bin" ]; then
+  export PATH="${HOME}/.local/bin:${PATH}"
+fi
+if [ -d "${HOME}/libjxl/usr/bin" ]; then
+  export PATH="${HOME}/libjxl/usr/bin:${PATH}"
+  export LD_LIBRARY_PATH="${HOME}/libjxl/usr/lib/x86_64-linux-gnu:${HOME}/libjxl/usr/lib:${LD_LIBRARY_PATH:-}"
+fi
+
+# ------------------------------------------------------------------------------
+# Environment Detection Helpers (Cloudflare Pages, Render, CI)
+# ------------------------------------------------------------------------------
+is_cloudflare() {
+  [ "${CF_PAGES:-}" = "1" ] || \
+  [ "${CLOUDFLARE_PAGES:-}" = "true" ] || \
+  [ -n "${CF_PAGES_COMMIT_SHA:-}" ] || \
+  [ -n "${CF_PAGES_BRANCH:-}" ] || \
+  [[ "${PWD}" == /opt/buildhome* ]] || \
+  [ -d "/opt/buildhome" ]
+}
+
+is_ci() {
+  is_cloudflare || \
+  [ "${CI:-}" = "true" ] || \
+  [ "${CI:-}" = "1" ] || \
+  [ -n "${RENDER:-}" ] || \
+  [ -n "${GITHUB_ACTIONS:-}" ] || \
+  [ "${AUTO_INSTALL_DEPS:-0}" = "1" ]
+}
+
+# ------------------------------------------------------------------------------
+# Toolchain Auto-Installers for CI / Non-Root Environments
+# ------------------------------------------------------------------------------
+install_cjxl() {
+  local runner="CI runner"
+  if is_cloudflare; then runner="Cloudflare Pages runner"; fi
+  echo "==> ${runner} detected. Auto-provisioning cjxl (libjxl)..."
+  JXL_VERSION="0.12.0"
+  mkdir -p "${HOME}/libjxl"
+  mkdir -p /tmp/jxl
+  local dl_dir="/tmp/jxl"
+  
+  if command -v wget >/dev/null 2>&1; then
+    wget -q "https://github.com/libjxl/libjxl/releases/download/v${JXL_VERSION}/jxl-debs-amd64-ubuntu-22.04.tar" -O "${dl_dir}/jxl-debs.tar" || true
+  elif command -v curl >/dev/null 2>&1; then
+    curl -sSL "https://github.com/libjxl/libjxl/releases/download/v${JXL_VERSION}/jxl-debs-amd64-ubuntu-22.04.tar" -o "${dl_dir}/jxl-debs.tar" || true
+  fi
+
+  if [ -f "${dl_dir}/jxl-debs.tar" ]; then
+    tar -xf "${dl_dir}/jxl-debs.tar" -C "${dl_dir}"
+    for deb in "${dl_dir}"/*.deb; do
+      if [ -f "$deb" ] && command -v dpkg >/dev/null 2>&1; then
+        dpkg -x "$deb" "${HOME}/libjxl"
+      fi
+    done
+    export PATH="${HOME}/libjxl/usr/bin:${PATH}"
+    export LD_LIBRARY_PATH="${HOME}/libjxl/usr/lib/x86_64-linux-gnu:${HOME}/libjxl/usr/lib:${LD_LIBRARY_PATH:-}"
+  fi
+}
+
+install_ffmpeg() {
+  local runner="CI runner"
+  if is_cloudflare; then runner="Cloudflare Pages runner"; fi
+  echo "==> ${runner} detected. Auto-provisioning ffmpeg static binary..."
+  mkdir -p "${HOME}/bin"
+  mkdir -p /tmp/ffmpeg
+  local dl_dir="/tmp/ffmpeg"
+
+  if command -v wget >/dev/null 2>&1; then
+    wget -q "https://github.com/vot/ffbinaries-prebuilt/releases/download/v6.1/ffmpeg-6.1-linux-64.zip" -O "${dl_dir}/ffmpeg.zip" 2>/dev/null || true
+  elif command -v curl >/dev/null 2>&1; then
+    curl -sSL "https://github.com/vot/ffbinaries-prebuilt/releases/download/v6.1/ffmpeg-6.1-linux-64.zip" -o "${dl_dir}/ffmpeg.zip" 2>/dev/null || true
+  fi
+
+  if [ -f "${dl_dir}/ffmpeg.zip" ]; then
+    if command -v unzip >/dev/null 2>&1; then
+      unzip -q -o "${dl_dir}/ffmpeg.zip" -d "${HOME}/bin"
+    elif command -v python3 >/dev/null 2>&1; then
+      python3 -c "import zipfile; zipfile.ZipFile('${dl_dir}/ffmpeg.zip').extractall('${HOME}/bin')" 2>/dev/null || true
+    fi
+  fi
+
+  # Fallback to John Van Sickle static tarball if ffmpeg is still not extracted
+  if [ ! -f "${HOME}/bin/ffmpeg" ]; then
+    if command -v wget >/dev/null 2>&1; then
+      wget -q "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -O "${dl_dir}/ffmpeg.tar.xz" 2>/dev/null || true
+    elif command -v curl >/dev/null 2>&1; then
+      curl -sSL "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -o "${dl_dir}/ffmpeg.tar.xz" 2>/dev/null || true
+    fi
+    if [ -f "${dl_dir}/ffmpeg.tar.xz" ]; then
+      tar -xJf "${dl_dir}/ffmpeg.tar.xz" --wildcards '*/ffmpeg' --strip-components=1 -C "${HOME}/bin" 2>/dev/null || true
+    fi
+  fi
+
+  if [ -f "${HOME}/bin/ffmpeg" ]; then
+    chmod +x "${HOME}/bin/ffmpeg" || true
+    export PATH="${HOME}/bin:${PATH}"
+  fi
+}
+
 echo "==> Checking for media assets in ${IMAGES_DIR}..."
 
 # Check toolchain availability: cjxl (JPEG XL encoder)
 HAS_CJXL=false
 if command -v cjxl >/dev/null 2>&1; then
   HAS_CJXL=true
-else
+elif is_ci; then
+  install_cjxl
+  if command -v cjxl >/dev/null 2>&1; then
+    HAS_CJXL=true
+  fi
+fi
+
+if [ "$HAS_CJXL" = false ]; then
   echo "WARNING: 'cjxl' not found on PATH. Static images will not be transcoded to JXL."
+  echo "  (Install via 'sudo apt install libjxl-tools' or set AUTO_INSTALL_DEPS=1)"
 fi
 
 # Check toolchain availability: ffmpeg (Video encoder)
 HAS_FFMPEG=false
 if command -v ffmpeg >/dev/null 2>&1; then
   HAS_FFMPEG=true
-else
+elif is_ci; then
+  install_ffmpeg
+  if command -v ffmpeg >/dev/null 2>&1; then
+    HAS_FFMPEG=true
+  fi
+fi
+
+if [ "$HAS_FFMPEG" = false ]; then
   echo "WARNING: 'ffmpeg' not found on PATH. GIFs will not be transcoded to WebM."
+  echo "  (Install via 'sudo apt install ffmpeg' or set AUTO_INSTALL_DEPS=1)"
 fi
 
 # ------------------------------------------------------------------------------

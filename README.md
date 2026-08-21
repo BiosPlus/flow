@@ -263,8 +263,16 @@ hugo --gc --minify
 npx -y pagefind --site build
 ```
 
-### Automated CI/CD (Render / Vercel / Netlify / GitHub Actions)
-The included [`build.sh`](build.sh) script automatically sets up Hugo Extended, checks toolchain checksums, transcodes media, builds the site, and indexes with Pagefind.
+### Automated CI/CD (Cloudflare Pages / Render / GitHub Actions)
+The included [`build.sh`](build.sh) script is a zero-configuration, multi-platform build pipeline that automatically detects the runner environment, sets up Hugo Extended, provisions missing toolchains (`cjxl` and `ffmpeg` for media transcoding), compiles the static site, and generates Pagefind search indexes.
+
+* **Cloudflare Pages Configuration**:
+  * **Framework preset**: `None` (or `Hugo`)
+  * **Build command**: `bash build.sh`
+  * **Build output directory**: `build`
+* **Render.com Configuration**:
+  * **Build command**: `bash build.sh`
+  * **Publish directory**: `build`
 
 ---
 

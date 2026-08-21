@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# build.sh - Render.com CI/CD Production Build Pipeline
+# build.sh - Multi-Platform Production Build Pipeline
 #
-# This script prepares the production build environment on Render.com:
-#   1. Downloads and installs Hugo Extended v0.165.0 with SHA-256 integrity check.
-#   2. Installs Node.js LTS (if not present) for running Pagefind search indexing.
-#   3. Installs cjxl (JPEG XL tools) for media asset transcoding.
-#   4. Verifies toolchain installation and versions.
-#   5. Optionally executes media asset transcoding (JXL/WebM).
-#   6. Compiles and minifies the Hugo static site to the `build/` directory.
-#   7. Runs Pagefind to generate static search indexes for client-side search.
+# Supported Environments:
+#   - Cloudflare Pages (v1 / v2 runners)
+#   - Render.com CI/CD
+#   - GitHub Actions
+#   - Linux CI/CD Runners (Ubuntu / Debian x86_64)
 #
-# NOTE: This script is reserved for Render.com CI/CD. Do not run locally.
+# Pipeline Steps:
+#   1. Detect build environment & export user toolchain paths.
+#   2. Install Hugo Extended v0.165.0 with SHA-256 integrity verification.
+#   3. Ensure Node.js & npx are available (required for Pagefind).
+#   4. Ensure cjxl is available (JPEG XL image transcoding).
+#   5. Ensure ffmpeg is available (GIF to WebM video transcoding).
+#   6. Verify complete toolchain versions.
+#   7. Transcode media assets (incremental JXL / WebM generation).
+#   8. Compile and minify Hugo static site to `build/`.
+#   9. Generate Pagefind static search index.
+#
+# NOTE: This script is intended for CI/CD runners. For local development,
+# run `hugo server --disableFastRender`.
 # ==============================================================================
 
 # Abort immediately if any command fails (exit on error)
@@ -22,25 +31,42 @@ set -o errexit
 ORIGINAL_DIR="$PWD"
 
 # ------------------------------------------------------------------------------
+# Step 0: Environment Detection & User Toolchain Path Setup
+# ------------------------------------------------------------------------------
+echo "==> Flow CI/CD Build Pipeline initialized"
+
+CI_PLATFORM="Generic CI / Linux Runner"
+if [ "${CF_PAGES:-}" = "1" ] || [ "${CLOUDFLARE_PAGES:-}" = "true" ] || [ -n "${CF_PAGES_COMMIT_SHA:-}" ] || [[ "${PWD}" == /opt/buildhome* ]] || [ -d "/opt/buildhome" ]; then
+  CI_PLATFORM="Cloudflare Pages"
+elif [ -n "${RENDER:-}" ] || [[ "${PWD}" == /opt/render* ]]; then
+  CI_PLATFORM="Render.com"
+elif [ -n "${GITHUB_ACTIONS:-}" ]; then
+  CI_PLATFORM="GitHub Actions"
+elif [ "${CI:-}" != "true" ] && [ "${CI:-}" != "1" ]; then
+  CI_PLATFORM="Local / Custom"
+fi
+echo "==> Build environment detected: ${CI_PLATFORM}"
+
+# Prepend user toolchain directories to PATH and set LD_LIBRARY_PATH
+mkdir -p "${HOME}/bin" "${HOME}/.local/bin" "${HOME}/libjxl/usr/bin"
+export PATH="${HOME}/bin:${HOME}/.local/bin:${HOME}/libjxl/usr/bin:${PATH}"
+export LD_LIBRARY_PATH="${HOME}/libjxl/usr/lib/x86_64-linux-gnu:${HOME}/libjxl/usr/lib:${LD_LIBRARY_PATH:-}"
+
+# ------------------------------------------------------------------------------
 # Step 1: Install Hugo Extended v0.165.0 with Checksum Verification
 # ------------------------------------------------------------------------------
-HUGO_VERSION="0.165.0"
-HUGO_CHECKSUM="f43494894cdf4a8630a201d5c828051c77f523cc66bb3938b30806835470ac20"
-echo "Installing Hugo Extended ${HUGO_VERSION}..."
+if ! command -v hugo &> /dev/null || ! hugo version 2>/dev/null | grep -qi "extended"; then
+  HUGO_VERSION="0.165.0"
+  HUGO_CHECKSUM="f43494894cdf4a8630a201d5c828051c77f523cc66bb3938b30806835470ac20"
+  echo "Installing Hugo Extended v${HUGO_VERSION}..."
 
-# Create installation and temporary download directories
-mkdir -p "${HOME}/bin"
-mkdir -p /tmp/hugo
-cd /tmp/hugo
-
-# Download Hugo Extended tarball and verify SHA-256 checksum
-wget -q https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz
-echo "${HUGO_CHECKSUM}  hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" | sha256sum -c -
-tar -xzf hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz
-
-# Move binary to user bin directory and prepend to PATH
-mv hugo "${HOME}/bin/"
-export PATH="${HOME}/bin:${PATH}"
+  mkdir -p /tmp/hugo
+  cd /tmp/hugo
+  wget -q "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+  echo "${HUGO_CHECKSUM}  hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" | sha256sum -c -
+  tar -xzf "hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+  mv hugo "${HOME}/bin/"
+fi
 
 # ------------------------------------------------------------------------------
 # Step 2: Ensure Node.js & npx are Available (Required for Pagefind)
@@ -67,42 +93,91 @@ if ! command -v cjxl &> /dev/null; then
   mkdir -p "${HOME}/libjxl"
   mkdir -p /tmp/jxl
   cd /tmp/jxl
-  wget -q "https://github.com/libjxl/libjxl/releases/download/v${JXL_VERSION}/jxl-debs-amd64-ubuntu-22.04.tar" -O jxl-debs.tar
-  tar -xf jxl-debs.tar
-  for deb in *.deb; do
-    if [ -f "$deb" ]; then
-      dpkg -x "$deb" "${HOME}/libjxl"
-    fi
-  done
-  export PATH="${HOME}/libjxl/usr/bin:${PATH}"
-  export LD_LIBRARY_PATH="${HOME}/libjxl/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}"
+  if command -v wget &> /dev/null; then
+    wget -q "https://github.com/libjxl/libjxl/releases/download/v${JXL_VERSION}/jxl-debs-amd64-ubuntu-22.04.tar" -O jxl-debs.tar || true
+  elif command -v curl &> /dev/null; then
+    curl -sSL "https://github.com/libjxl/libjxl/releases/download/v${JXL_VERSION}/jxl-debs-amd64-ubuntu-22.04.tar" -o jxl-debs.tar || true
+  fi
+
+  if [ -f jxl-debs.tar ]; then
+    tar -xf jxl-debs.tar
+    for deb in *.deb; do
+      if [ -f "$deb" ] && command -v dpkg &> /dev/null; then
+        dpkg -x "$deb" "${HOME}/libjxl"
+      fi
+    done
+  fi
 fi
 
 # ------------------------------------------------------------------------------
-# Step 4: Verify Toolchain Versions
+# Step 4: Ensure ffmpeg is Available for GIF to WebM Transcoding
 # ------------------------------------------------------------------------------
+if ! command -v ffmpeg &> /dev/null; then
+  echo "ffmpeg not found. Installing ffmpeg static binary..."
+  mkdir -p /tmp/ffmpeg
+  cd /tmp/ffmpeg
+  if command -v wget &> /dev/null; then
+    wget -q "https://github.com/vot/ffbinaries-prebuilt/releases/download/v6.1/ffmpeg-6.1-linux-64.zip" -O ffmpeg.zip 2>/dev/null || true
+  elif command -v curl &> /dev/null; then
+    curl -sSL "https://github.com/vot/ffbinaries-prebuilt/releases/download/v6.1/ffmpeg-6.1-linux-64.zip" -o ffmpeg.zip 2>/dev/null || true
+  fi
+
+  if [ -f ffmpeg.zip ]; then
+    if command -v unzip &> /dev/null; then
+      unzip -q -o ffmpeg.zip -d "${HOME}/bin"
+    elif command -v python3 &> /dev/null; then
+      python3 -c "import zipfile; zipfile.ZipFile('ffmpeg.zip').extractall('${HOME}/bin')" 2>/dev/null || true
+    fi
+  fi
+
+  # Fallback to John Van Sickle static tarball if ffmpeg is still not extracted
+  if [ ! -f "${HOME}/bin/ffmpeg" ]; then
+    if command -v wget &> /dev/null; then
+      wget -q "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -O ffmpeg.tar.xz 2>/dev/null || true
+    elif command -v curl &> /dev/null; then
+      curl -sSL "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -o ffmpeg.tar.xz 2>/dev/null || true
+    fi
+    if [ -f ffmpeg.tar.xz ]; then
+      tar -xJf ffmpeg.tar.xz --wildcards '*/ffmpeg' --strip-components=1 -C "${HOME}/bin" 2>/dev/null || true
+    fi
+  fi
+
+  if [ -f "${HOME}/bin/ffmpeg" ]; then
+    chmod +x "${HOME}/bin/ffmpeg" || true
+  fi
+fi
+
+# ------------------------------------------------------------------------------
+# Step 5: Verify Toolchain Versions
+# ------------------------------------------------------------------------------
+cd "$ORIGINAL_DIR"
+echo "==> Verifying toolchain components:"
 hugo version
 node -v
 npx -v
 if command -v cjxl &> /dev/null; then
-  cjxl --version || true
+  cjxl --version 2>&1 || true
+else
+  echo "WARNING: cjxl not found on PATH."
+fi
+if command -v ffmpeg &> /dev/null; then
+  ffmpeg -version 2>&1 | head -n 1 || true
+else
+  echo "WARNING: ffmpeg not found on PATH."
 fi
 
-# Return back to repository root directory
-cd "$ORIGINAL_DIR"
-
 # ------------------------------------------------------------------------------
-# Step 5: Media Asset Transcoding (Incremental JXL & WebM generation)
+# Step 6: Media Asset Transcoding (Incremental JXL & WebM generation)
 # ------------------------------------------------------------------------------
 if [ -f "./scripts/transcode-media.sh" ]; then
-  echo "Invoking media transcoding at build time..."
+  echo "Invoking media transcoding pipeline..."
   bash ./scripts/transcode-media.sh
 fi
 
 # ------------------------------------------------------------------------------
-# Step 6: Build Static Site with Hugo
+# Step 7: Build Static Site with Hugo Extended
 # ------------------------------------------------------------------------------
-# Ensure theme directory symlink exists for CI environments (e.g. Render /opt/render/project/src)
+# Ensure theme directory symlink exists for CI environments (e.g. Cloudflare / Render)
 mkdir -p "${ORIGINAL_DIR}/themes"
 ln -sfn "${ORIGINAL_DIR}" "${ORIGINAL_DIR}/themes/flow"
 
@@ -111,7 +186,7 @@ ln -sfn "${ORIGINAL_DIR}" "${ORIGINAL_DIR}/themes/flow"
 hugo --source exampleSite --themesDir ../themes --theme flow --gc --minify
 
 # ------------------------------------------------------------------------------
-# Step 7: Generate Pagefind Search Index
+# Step 8: Generate Pagefind Search Index
 # ------------------------------------------------------------------------------
 # Indexes HTML articles in the `build/` directory for client-side search.js
 npx -y pagefind --site build
