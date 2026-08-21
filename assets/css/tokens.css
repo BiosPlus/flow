@@ -35,7 +35,7 @@
   --rule-subtle:               rgba(255, 255, 255, 0.07);
 
   /* Primary Accent & Focus System */
-  --accent:                    #ff897d;  /* Coral/Rose primary accent (left guide-line, active tabs) */
+  --accent:                    #ff897d;  /* Coral/Rose primary accent (active post row, active tabs) */
   --accent-container:          #3d1416;  /* M3 Primary container background */
   --on-accent-container:       #ffdad5;  /* M3 On-primary container foreground */
   --focus:                     #a8c7fa;  /* Accessible focus ring indicator (WCAG 2.1 AA) */

@@ -1,7 +1,6 @@
 /* ==========================================================================
    Reading Pane Styles
    - Article Typography & Modern Text Wrapping (balance/pretty)
-   - Left Accent Guide-line (.reading__body border-left)
    - Breakout Elements (Code Highlight Blocks, Tables, Video Embeds, Figures)
    - Table of Contents (TOC)
    - Empty State Display
@@ -77,11 +76,6 @@ h1 {
   text-wrap: balance;
 }
 
-/* Reading Body Left Accent Guide-line */
-.reading__body {
-  border-left: 1px solid var(--accent);
-  padding-left: 2rem;
-}
 
 /* ----------------------------------------------------------------------------
    Breakout Elements (Full-measure container breaking out of normal text width)

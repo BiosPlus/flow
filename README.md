@@ -207,7 +207,7 @@ tags = ["engineering", "web", "performance"]
 toc = true
 +++
 
-Here is the opening paragraph of your article. Flow styles typography with balanced line lengths, crisp contrast, and a distinct left accent guide-line.
+Here is the opening paragraph of your article. Flow styles typography with balanced line lengths and crisp contrast.
 
 ## Subheading
 
@@ -296,7 +296,7 @@ flow/
 Flow's design system is controlled via CSS custom properties in [`tokens.css`](theme/flow/assets/css/tokens.css). You can easily override:
 * `--bg`: Background color for the reading pane (default AMOLED `#000000`).
 * `--surface`: Surface container background for sidebar, toolbar, and sub-bar.
-* `--accent`: Primary highlight color for active tabs, left guide-lines, and resizer handles (default `#ff897d`).
+* `--accent`: Primary highlight color for active tabs and resizer handles (default `#ff897d`).
 * `--focus`: Accessible focus ring color (`#a8c7fa`).
 * `--font` & `--font-mono`: System typographic stacks.
 
