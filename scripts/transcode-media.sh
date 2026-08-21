@@ -178,10 +178,10 @@ if [ "$HAS_FFMPEG" = false ]; then
 fi
 
 # ------------------------------------------------------------------------------
-# 1. Transcode PNG / JPG / JPEG / TIFF to JPEG XL (.jxl)
+# 1. Transcode PNG / JPG / JPEG / TIFF / WebP to JPEG XL (.jxl)
 # ------------------------------------------------------------------------------
 if [ "$HAS_CJXL" = true ]; then
-  find "${IMAGES_DIR}" -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.tif" -o -iname "*.tiff" \) -print0 | while IFS= read -r -d '' src; do
+  find "${IMAGES_DIR}" -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.tif" -o -iname "*.tiff" -o -iname "*.webp" \) -print0 | while IFS= read -r -d '' src; do
     dir="$(dirname "$src")"
     filename="$(basename "$src")"
     base="${filename%.*}"
@@ -195,13 +195,20 @@ if [ "$HAS_CJXL" = true ]; then
       # --quiet: Suppress progress statistics output
       TRANSCODE_SUCCESS=false
       if cjxl "$src" "$dst" -d 1.0 -e 7 --quiet 2>/dev/null; then
-        TRANSCODE_SUCCESS=true
-      elif [ "$HAS_FFMPEG" = true ]; then
-        # If cjxl failed (e.g. format mismatch like JPEG/WebP renamed to .png), try normalizing through ffmpeg
-        tmp_png="/tmp/norm_${base}_$$.png"
+        if [ -s "$dst" ]; then
+          TRANSCODE_SUCCESS=true
+        fi
+      fi
+
+      # If cjxl failed (e.g. format mismatch like WebP/JPEG disguised as .png), try normalizing through ffmpeg
+      if [ "$TRANSCODE_SUCCESS" = false ] && [ "$HAS_FFMPEG" = true ]; then
+        rm -f "$dst"
+        tmp_png="$(mktemp /tmp/flow_transcode_XXXXXX.png 2>/dev/null || echo "/tmp/norm_${base}_$$.png")"
         if ffmpeg -y -v error -i "$src" "$tmp_png" 2>/dev/null; then
           if cjxl "$tmp_png" "$dst" -d 1.0 -e 7 --quiet 2>/dev/null; then
-            TRANSCODE_SUCCESS=true
+            if [ -s "$dst" ]; then
+              TRANSCODE_SUCCESS=true
+            fi
           fi
           rm -f "$tmp_png"
         fi
