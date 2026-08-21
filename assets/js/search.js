@@ -8,6 +8,7 @@
  *  - State Preservation: Caches original sidebar DOM nodes and restores them when query is cleared.
  *  - Race Condition Protection: Monotonic search IDs prevent out-of-order async resolution.
  *  - Safe DOM Construction: Zero innerHTML usage with strict excerpt sanitization preventing XSS.
+ *  - Modular Pipeline: Separates data fetching, result rendering, empty/error state handling, and UI controls.
  *  - Keyboard Shortcuts:
  *      * `/` or `Cmd+K` / `Ctrl+K`: Focus and select search input.
  *      * `Escape`: Clear search and restore previous message list.
@@ -22,9 +23,10 @@
     return;
   }
 
-  /**
-   * Helper DOM element accessors
-   */
+  /* --------------------------------------------------------------------------
+   * Section 1: DOM Element Accessors & State Variables
+   * -------------------------------------------------------------------------- */
+
   function getListContainer() {
     return document.getElementById('message-list-items');
   }
@@ -44,6 +46,10 @@
   let originalTotal = '';
   let debounceTimer = null;
   let currentSearchId = 0;
+
+  /* --------------------------------------------------------------------------
+   * Section 2: Sanitization & URL Utilities
+   * -------------------------------------------------------------------------- */
 
   /**
    * 32-bit FNV-1a string hashing algorithm with memoization cache.
@@ -138,34 +144,6 @@
   }
 
   /**
-   * Captures the default unsearched DOM nodes and counter state of the sidebar message list.
-   */
-  function captureOriginalState() {
-    const container = getListContainer();
-    const count = getListCount();
-    if (container) {
-      originalNodes = Array.from(container.childNodes).map(n => n.cloneNode(true));
-    }
-    if (count) {
-      originalCountText = count.textContent;
-      originalTotal = count.getAttribute('data-total') || '';
-    }
-  }
-
-  // Initial capture on load
-  captureOriginalState();
-
-  // Listen for tag filter updates from scroll-memory.js to reset search input and refresh cache
-  window.addEventListener('flow:list-updated', () => {
-    if (searchInput && searchInput.value) {
-      searchInput.value = '';
-      if (searchClear) searchClear.hidden = true;
-      if (searchShortcut) searchShortcut.style.display = '';
-    }
-    captureOriginalState();
-  });
-
-  /**
    * Helper to retrieve base URL from document root attribute
    */
   function getBaseUrl() {
@@ -176,52 +154,9 @@
     return base;
   }
 
-  /**
-   * Dynamically loads and initializes the Pagefind JavaScript bundle.
-   * @returns {Promise<object|null>} Pagefind instance or null if unavailable.
-   */
-  async function loadPagefind() {
-    if (pagefind) return pagefind;
-    if (pagefindLoading) return pagefindLoading;
-
-    pagefindLoading = (async () => {
-      const pagefindPath = `${getBaseUrl()}pagefind/pagefind.js`;
-      try {
-        const pf = await import(pagefindPath);
-        if (pf.init) {
-          await pf.init();
-        }
-        pagefind = pf;
-        return pf;
-      } catch (err) {
-        console.warn(`[Pagefind] Search index not found at ${pagefindPath}`, err);
-        return null;
-      } finally {
-        pagefindLoading = null;
-      }
-    })();
-
-    return pagefindLoading;
-  }
-
-  /**
-   * Restores the sidebar message list to its original state before search.
-   */
-  function resetSearch() {
-    const container = getListContainer();
-    const count = getListCount();
-    const pager = getListPager();
-
-    if (container && originalNodes.length > 0) {
-      container.replaceChildren(...originalNodes.map(n => n.cloneNode(true)));
-    }
-    if (count && originalCountText) {
-      count.textContent = originalCountText;
-    }
-    if (pager) pager.style.display = '';
-    if (searchClear) searchClear.hidden = true;
-    if (searchShortcut) searchShortcut.style.display = '';
-  }
+  /* --------------------------------------------------------------------------
+   * Section 3: DOM Component Builders (Chips & Result Rows)
+   * -------------------------------------------------------------------------- */
 
   /**
    * Creates a DOM element for an individual tag chip with deterministic FNV32a color index.
@@ -315,6 +250,204 @@
     return row;
   }
 
+  /* --------------------------------------------------------------------------
+   * Section 4: UI State Management & Renderers
+   * -------------------------------------------------------------------------- */
+
+  /**
+   * Captures the default unsearched DOM nodes and counter state of the sidebar message list.
+   */
+  function captureOriginalState() {
+    const container = getListContainer();
+    const count = getListCount();
+    if (container) {
+      originalNodes = Array.from(container.childNodes).map(n => n.cloneNode(true));
+    }
+    if (count) {
+      originalCountText = count.textContent;
+      originalTotal = count.getAttribute('data-total') || '';
+    }
+  }
+
+  // Initial capture on load
+  captureOriginalState();
+
+  /**
+   * Toggles the search-active UI state across input controls and list pagination buttons.
+   * @param {boolean} isActive - Whether a search query is currently active.
+   */
+  function setSearchActiveState(isActive) {
+    const pager = getListPager();
+    if (searchClear) searchClear.hidden = !isActive;
+    if (searchShortcut) searchShortcut.style.display = isActive ? 'none' : '';
+    if (pager) pager.style.display = isActive ? 'none' : '';
+  }
+
+  /**
+   * Restores the sidebar message list to its original state before search.
+   */
+  function resetSearch() {
+    const container = getListContainer();
+    const count = getListCount();
+
+    if (container && originalNodes.length > 0) {
+      container.replaceChildren(...originalNodes.map(n => n.cloneNode(true)));
+    }
+    if (count && originalCountText) {
+      count.textContent = originalCountText;
+    }
+    setSearchActiveState(false);
+  }
+
+  /**
+   * Constructs and renders a formatted empty/status state container into the message list.
+   * @param {HTMLElement|null} container - Target list container.
+   * @param {string|Node} message - Primary feedback message string or DOM node.
+   * @param {string|Node} [hint] - Optional secondary guidance string or DOM node.
+   */
+  function renderEmptyState(container, message, hint) {
+    if (!container) return;
+
+    const emptyState = document.createElement('div');
+    emptyState.className = 'search-empty-state';
+
+    const msgEl = document.createElement('div');
+    if (typeof message === 'string') {
+      msgEl.textContent = message;
+    } else if (message instanceof Node) {
+      msgEl.appendChild(message);
+    }
+    emptyState.appendChild(msgEl);
+
+    if (hint) {
+      const hintEl = document.createElement('div');
+      hintEl.className = 'search-empty-hint';
+      if (typeof hint === 'string') {
+        hintEl.textContent = hint;
+      } else if (hint instanceof Node) {
+        hintEl.appendChild(hint);
+      }
+      emptyState.appendChild(hintEl);
+    }
+
+    container.replaceChildren(emptyState);
+  }
+
+  /**
+   * Renders the guidance state when the static search index hasn't been generated.
+   * @param {HTMLElement|null} container - Target list container.
+   * @param {HTMLElement|null} countEl - Counter display element.
+   * @param {string} query - Active search query.
+   */
+  function renderIndexNotBuiltState(container, countEl, query) {
+    const hintFrag = document.createDocumentFragment();
+    hintFrag.appendChild(document.createTextNode('Run '));
+    const code = document.createElement('code');
+    code.textContent = 'npx pagefind --site build';
+    hintFrag.appendChild(code);
+    hintFrag.appendChild(document.createTextNode(' to generate the search index.'));
+
+    renderEmptyState(container, 'Search index is not built yet.', hintFrag);
+    if (countEl) {
+      countEl.textContent = `0 results for "${query}"`;
+    }
+  }
+
+  /**
+   * Renders the empty state when no posts match the search query.
+   * @param {HTMLElement|null} container - Target list container.
+   * @param {HTMLElement|null} countEl - Counter display element.
+   * @param {string} query - Active search query.
+   */
+  function renderNoResultsState(container, countEl, query) {
+    const msgFrag = document.createDocumentFragment();
+    msgFrag.appendChild(document.createTextNode('No posts matching "'));
+    const strong = document.createElement('strong');
+    strong.textContent = query;
+    msgFrag.appendChild(strong);
+    msgFrag.appendChild(document.createTextNode('"'));
+
+    renderEmptyState(container, msgFrag);
+    if (countEl) {
+      countEl.textContent = `0 of ${originalTotal || '0'} results`;
+    }
+  }
+
+  /**
+   * Renders error feedback when search query execution fails.
+   * @param {HTMLElement|null} container - Target list container.
+   */
+  function renderSearchErrorState(container) {
+    renderEmptyState(container, 'Error executing search.');
+  }
+
+  /**
+   * Renders the retrieved search result items into the message list container.
+   * @param {HTMLElement|null} container - Target list container.
+   * @param {HTMLElement|null} countEl - Counter display element.
+   * @param {Array<object>} items - Resolved Pagefind result data objects.
+   */
+  function renderSearchResults(container, countEl, items) {
+    if (countEl) {
+      countEl.textContent = `1 to ${items.length} of ${items.length} results`;
+    }
+    if (container) {
+      const fragment = document.createDocumentFragment();
+      items.forEach(item => {
+        fragment.appendChild(createResultRow(item));
+      });
+      container.replaceChildren(fragment);
+    }
+  }
+
+  /* --------------------------------------------------------------------------
+   * Section 5: Pagefind Integration & Search Execution
+   * -------------------------------------------------------------------------- */
+
+  /**
+   * Dynamically loads and initializes the Pagefind JavaScript bundle.
+   * @returns {Promise<object|null>} Pagefind instance or null if unavailable.
+   */
+  async function loadPagefind() {
+    if (pagefind) return pagefind;
+    if (pagefindLoading) return pagefindLoading;
+
+    pagefindLoading = (async () => {
+      const pagefindPath = `${getBaseUrl()}pagefind/pagefind.js`;
+      try {
+        const pf = await import(pagefindPath);
+        if (pf.init) {
+          await pf.init();
+        }
+        pagefind = pf;
+        return pf;
+      } catch (err) {
+        console.warn(`[Pagefind] Search index not found at ${pagefindPath}`, err);
+        return null;
+      } finally {
+        pagefindLoading = null;
+      }
+    })();
+
+    return pagefindLoading;
+  }
+
+  /**
+   * Queries the Pagefind search index and loads item data objects concurrently.
+   * @param {object} pf - Initialized Pagefind instance.
+   * @param {string} query - Cleaned search query.
+   * @param {number} [maxResults=50] - Maximum number of results to fetch data for.
+   * @returns {Promise<{total: number, items: Array<object>}>} Search total count and resolved items array.
+   */
+  async function fetchSearchResults(pf, query, maxResults = 50) {
+    const search = await pf.search(query);
+    if (!search || !search.results || search.results.length === 0) {
+      return { total: 0, items: [] };
+    }
+    const items = await Promise.all(search.results.slice(0, maxResults).map(r => r.data()));
+    return { total: search.results.length, items };
+  }
+
   /**
    * Executes a full-text search against Pagefind and updates the message list UI.
    * @param {string} query - Raw search query.
@@ -330,89 +463,47 @@
 
     const container = getListContainer();
     const count = getListCount();
-    const pager = getListPager();
 
-    if (searchClear) searchClear.hidden = false;
-    if (searchShortcut) searchShortcut.style.display = 'none';
-    if (pager) pager.style.display = 'none';
+    setSearchActiveState(true);
 
     const pf = await loadPagefind();
-
-    // Guard against outdated out-of-order async responses
     if (searchId !== currentSearchId) return;
 
     if (!pf) {
-      if (container) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'search-empty-state';
-        const msg = document.createElement('div');
-        msg.textContent = 'Search index is not built yet.';
-        const hint = document.createElement('div');
-        hint.className = 'search-empty-hint';
-        hint.appendChild(document.createTextNode('Run '));
-        const code = document.createElement('code');
-        code.textContent = 'npx pagefind --site build';
-        hint.appendChild(code);
-        hint.appendChild(document.createTextNode(' to generate the search index.'));
-        emptyState.appendChild(msg);
-        emptyState.appendChild(hint);
-        container.replaceChildren(emptyState);
-      }
-      if (count) {
-        count.textContent = `0 results for "${cleanQuery}"`;
-      }
+      renderIndexNotBuiltState(container, count, cleanQuery);
       return;
     }
 
     try {
-      const search = await pf.search(cleanQuery);
+      const { total, items } = await fetchSearchResults(pf, cleanQuery, 50);
       if (searchId !== currentSearchId) return;
 
-      if (!search.results || search.results.length === 0) {
-        if (container) {
-          const emptyState = document.createElement('div');
-          emptyState.className = 'search-empty-state';
-          const msg = document.createElement('div');
-          msg.appendChild(document.createTextNode('No posts matching "'));
-          const strong = document.createElement('strong');
-          strong.textContent = cleanQuery;
-          msg.appendChild(strong);
-          msg.appendChild(document.createTextNode('"'));
-          emptyState.appendChild(msg);
-          container.replaceChildren(emptyState);
-        }
-        if (count) {
-          count.textContent = `0 of ${originalTotal || '0'} results`;
-        }
+      if (total === 0) {
+        renderNoResultsState(container, count, cleanQuery);
         return;
       }
 
-      // Fetch top result data objects concurrently (capped at 50 results)
-      const dataResults = await Promise.all(search.results.slice(0, 50).map(r => r.data()));
-      if (searchId !== currentSearchId) return;
-
-      if (count) {
-        count.textContent = `1 to ${dataResults.length} of ${dataResults.length} results`;
-      }
-      if (container) {
-        const fragment = document.createDocumentFragment();
-        dataResults.forEach(item => {
-          fragment.appendChild(createResultRow(item));
-        });
-        container.replaceChildren(fragment);
-      }
+      renderSearchResults(container, count, items);
     } catch (err) {
       console.error('[Pagefind] Search error:', err);
-      if (searchId === currentSearchId && container) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'search-empty-state';
-        const msg = document.createElement('div');
-        msg.textContent = 'Error executing search.';
-        emptyState.appendChild(msg);
-        container.replaceChildren(emptyState);
+      if (searchId === currentSearchId) {
+        renderSearchErrorState(container);
       }
     }
   }
+
+  /* --------------------------------------------------------------------------
+   * Section 6: Event Listeners & Keyboard Shortcuts
+   * -------------------------------------------------------------------------- */
+
+  // Listen for tag filter updates from scroll-memory.js to reset search input and refresh cache
+  window.addEventListener('flow:list-updated', () => {
+    if (searchInput && searchInput.value) {
+      searchInput.value = '';
+      setSearchActiveState(false);
+    }
+    captureOriginalState();
+  });
 
   // Pre-load Pagefind on input focus / mouseover for instantaneous search response
   searchInput.addEventListener('focus', () => loadPagefind(), { once: true });
