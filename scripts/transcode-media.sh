@@ -193,7 +193,21 @@ if [ "$HAS_CJXL" = true ]; then
       # -d 1.0: Butteraugli distance 1.0 (visually lossless compression)
       # -e 7: Encoder effort 7 (high compression efficiency)
       # --quiet: Suppress progress statistics output
-      if ! cjxl "$src" "$dst" -d 1.0 -e 7 --quiet 2>&1; then
+      TRANSCODE_SUCCESS=false
+      if cjxl "$src" "$dst" -d 1.0 -e 7 --quiet 2>/dev/null; then
+        TRANSCODE_SUCCESS=true
+      elif [ "$HAS_FFMPEG" = true ]; then
+        # If cjxl failed (e.g. format mismatch like JPEG/WebP renamed to .png), try normalizing through ffmpeg
+        tmp_png="/tmp/norm_${base}_$$.png"
+        if ffmpeg -y -v error -i "$src" "$tmp_png" 2>/dev/null; then
+          if cjxl "$tmp_png" "$dst" -d 1.0 -e 7 --quiet 2>/dev/null; then
+            TRANSCODE_SUCCESS=true
+          fi
+          rm -f "$tmp_png"
+        fi
+      fi
+
+      if [ "$TRANSCODE_SUCCESS" = false ]; then
         echo "  [JXL] WARNING: Transcoding failed for '${filename}'. Skipping (original format preserved)."
         rm -f "$dst"
       fi
@@ -218,7 +232,7 @@ if [ "$HAS_FFMPEG" = true ]; then
       # -b:v 0 -crf 32: Constant quality mode with CRF 32
       # -pix_fmt yuv420p: Wide hardware compatibility
       # -an: Strip any audio tracks
-      if ! ffmpeg -y -i "$src" -c:v libvpx-vp9 -b:v 0 -crf 32 -pix_fmt yuv420p -an "$dst" -loglevel error 2>&1; then
+      if ! ffmpeg -y -i "$src" -c:v libvpx-vp9 -b:v 0 -crf 32 -pix_fmt yuv420p -an "$dst" -loglevel error 2>/dev/null; then
         echo "  [WebM] WARNING: Transcoding failed for '${filename}'. Skipping (original GIF preserved)."
         rm -f "$dst"
       fi
