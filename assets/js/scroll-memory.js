@@ -256,6 +256,98 @@
   })();
 
   /**
+   * Fetches an HTML document from a given URL and parses it into a DOM Document.
+   * @param {string} url - Target URL to fetch.
+   * @returns {Promise<Document>} Parsed HTML Document.
+   */
+  async function fetchHtmlDocument(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+    const html = await res.text();
+    return new DOMParser().parseFromString(html, 'text/html');
+  }
+
+  /**
+   * Appends sanitized message rows to the list container, avoiding duplicates.
+   * @param {HTMLElement} listItems - Container holding message rows.
+   * @param {NodeList|Element[]} rawRows - Unsanitized message row elements.
+   * @param {HTMLElement|null} sentinel - Sentinel element to insert before, if present.
+   * @param {string} currentPath - Current page normalized URL path.
+   */
+  function appendSanitizedMessageRows(listItems, rawRows, sentinel, currentPath) {
+    const existingHrefs = new Set(
+      Array.from(listItems.querySelectorAll('.message-row')).map(r => normalizeUrl(r.getAttribute('href')))
+    );
+
+    rawRows.forEach(rawRow => {
+      const row = cloneSanitizedNode(rawRow);
+      if (!row || row.nodeType !== Node.ELEMENT_NODE) return;
+      const href = normalizeUrl(row.getAttribute('href'));
+      if (!existingHrefs.has(href)) {
+        if (href === currentPath) {
+          row.classList.add('current-row');
+          row.setAttribute('aria-current', 'page');
+        }
+        if (sentinel) {
+          listItems.insertBefore(row, sentinel);
+        } else {
+          listItems.appendChild(row);
+        }
+        existingHrefs.add(href);
+      }
+    });
+  }
+
+  /**
+   * Updates the header message list counter display and attributes.
+   * @param {HTMLElement|null} countEl - The counter element.
+   * @param {HTMLElement} listItems - Container holding message rows.
+   */
+  function updateMessageListCount(countEl, listItems) {
+    if (!countEl) return;
+    const first = countEl.getAttribute('data-first') || '1';
+    const total = countEl.getAttribute('data-total') || '';
+    const currentCount = listItems.querySelectorAll('.message-row').length;
+    countEl.setAttribute('data-last', currentCount.toString());
+    if (total) {
+      countEl.textContent = `${first}–${currentCount} of ${total}`;
+    }
+  }
+
+  /**
+   * Updates the header next page button link and disabled state.
+   * @param {HTMLElement|null} nextBtn - Next page link/button element.
+   * @param {string|null} nextUrl - Next page URL or null if no further pages.
+   */
+  function updatePagerNextButton(nextBtn, nextUrl) {
+    if (!nextBtn) return;
+    if (nextUrl) {
+      nextBtn.setAttribute('href', sanitizeUrl(nextUrl));
+      nextBtn.classList.remove('disabled');
+      nextBtn.removeAttribute('aria-disabled');
+    } else {
+      nextBtn.classList.add('disabled');
+      nextBtn.setAttribute('aria-disabled', 'true');
+      nextBtn.removeAttribute('href');
+    }
+  }
+
+  /**
+   * Synchronizes in-memory tag cache with current list pane contents.
+   * @param {HTMLElement} listPane - List pane container element.
+   * @param {string} currentPath - Current page normalized URL path.
+   */
+  function syncTagListCache(listPane, currentPath) {
+    const activeTag = sessionStorage.getItem(ACTIVE_TAG_KEY);
+    const homeUrl = getBaseUrl();
+    if (activeTag) {
+      tagListCache.set(activeTag, captureChildNodes(listPane));
+    } else if (currentPath === homeUrl) {
+      tagListCache.set(homeUrl, captureChildNodes(listPane));
+    }
+  }
+
+  /**
    * Initializes infinite scrolling on the sidebar message list using IntersectionObserver.
    */
   function initInfiniteScroll() {
@@ -288,72 +380,19 @@
       if (statusIndicator) statusIndicator.classList.add('is-loading');
 
       try {
-        const res = await fetch(nextUrl);
-        if (!res.ok) throw new Error('Fetch failed');
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-
+        const doc = await fetchHtmlDocument(nextUrl);
         const rawRows = doc.querySelectorAll('.message-list-items .message-row');
-        const existingHrefs = new Set(
-          Array.from(listItems.querySelectorAll('.message-row')).map(r => normalizeUrl(r.getAttribute('href')))
-        );
+        appendSanitizedMessageRows(listItems, rawRows, sentinel, currentPath);
 
-        // Append only sanitized, non-duplicate rows
-        rawRows.forEach(rawRow => {
-          const row = cloneSanitizedNode(rawRow);
-          if (!row || row.nodeType !== Node.ELEMENT_NODE) return;
-          const href = normalizeUrl(row.getAttribute('href'));
-          if (!existingHrefs.has(href)) {
-            if (href === currentPath) {
-              row.classList.add('current-row');
-              row.setAttribute('aria-current', 'page');
-            }
-            if (sentinel) {
-              listItems.insertBefore(row, sentinel);
-            } else {
-              listItems.appendChild(row);
-            }
-            existingHrefs.add(href);
-          }
-        });
-
-        // Update nextUrl from the newly fetched page DOM
         const docItems = doc.querySelector('.message-list-items');
         nextUrl = docItems ? docItems.getAttribute('data-next-url') : null;
         listItems.setAttribute('data-next-url', nextUrl || '');
 
-        // Update header post counter (e.g. "1–50 of 100")
-        if (countEl) {
-          const first = countEl.getAttribute('data-first') || '1';
-          const total = countEl.getAttribute('data-total') || '';
-          const currentCount = listItems.querySelectorAll('.message-row').length;
-          countEl.setAttribute('data-last', currentCount.toString());
-          if (total) {
-            countEl.textContent = `${first}–${currentCount} of ${total}`;
-          }
-        }
+        updateMessageListCount(countEl, listItems);
+        updatePagerNextButton(nextBtn, nextUrl);
+        syncTagListCache(listPane, currentPath);
 
-        // Update header next page button link / disabled state
-        if (nextBtn) {
-          if (nextUrl) {
-            nextBtn.setAttribute('href', sanitizeUrl(nextUrl));
-            nextBtn.classList.remove('disabled');
-            nextBtn.removeAttribute('aria-disabled');
-          } else {
-            nextBtn.classList.add('disabled');
-            nextBtn.setAttribute('aria-disabled', 'true');
-            nextBtn.removeAttribute('href');
-          }
-        }
-
-        // Keep cached nodes in sync with expanded list
         const activeTag = sessionStorage.getItem(ACTIVE_TAG_KEY);
-        const homeUrl = getBaseUrl();
-        if (activeTag) {
-          tagListCache.set(activeTag, captureChildNodes(listPane));
-        } else if (currentPath === homeUrl) {
-          tagListCache.set(homeUrl, captureChildNodes(listPane));
-        }
         window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: activeTag || currentPath } }));
       } catch (err) {
         console.warn('Infinite scroll error:', err);
