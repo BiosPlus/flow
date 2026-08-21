@@ -36,9 +36,9 @@ ORIGINAL_DIR="$PWD"
 echo "==> Flow CI/CD Build Pipeline initialized"
 
 CI_PLATFORM="Generic CI / Linux Runner"
-if [ "${CF_PAGES:-}" = "1" ] || [ "${CLOUDFLARE_PAGES:-}" = "true" ] || [ -n "${CF_PAGES_COMMIT_SHA:-}" ] || [[ "${PWD}" == /opt/buildhome* ]] || [ -d "/opt/buildhome" ]; then
+if [ -n "${CF_PAGES:-}" ] || [ -n "${CLOUDFLARE_PAGES:-}" ] || [ -n "${CF_PAGES_COMMIT_SHA:-}" ] || [ -n "${CF_PAGES_BRANCH:-}" ] || [ -n "${CF_PAGES_URL:-}" ] || [[ "${PWD}" == /opt/buildhome* ]] || [[ "${HOME:-}" == /opt/buildhome* ]] || [ -d "/opt/buildhome" ]; then
   CI_PLATFORM="Cloudflare Pages"
-elif [ -n "${RENDER:-}" ] || [[ "${PWD}" == /opt/render* ]]; then
+elif [ -n "${RENDER:-}" ] || [[ "${PWD}" == /opt/render* ]] || [[ "${HOME:-}" == /opt/render* ]]; then
   CI_PLATFORM="Render.com"
 elif [ -n "${GITHUB_ACTIONS:-}" ]; then
   CI_PLATFORM="GitHub Actions"

@@ -46,11 +46,13 @@ fi
 # Environment Detection Helpers (Cloudflare Pages, Render, CI)
 # ------------------------------------------------------------------------------
 is_cloudflare() {
-  [ "${CF_PAGES:-}" = "1" ] || \
-  [ "${CLOUDFLARE_PAGES:-}" = "true" ] || \
+  [ -n "${CF_PAGES:-}" ] || \
+  [ -n "${CLOUDFLARE_PAGES:-}" ] || \
   [ -n "${CF_PAGES_COMMIT_SHA:-}" ] || \
   [ -n "${CF_PAGES_BRANCH:-}" ] || \
+  [ -n "${CF_PAGES_URL:-}" ] || \
   [[ "${PWD}" == /opt/buildhome* ]] || \
+  [[ "${HOME:-}" == /opt/buildhome* ]] || \
   [ -d "/opt/buildhome" ]
 }
 
