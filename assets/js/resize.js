@@ -34,13 +34,21 @@
     return null;
   }
 
+  let resizers = null;
+
+  function getResizers() {
+    if (!resizers || resizers.length === 0) {
+      resizers = document.querySelectorAll('.split-resizer, .sub-resizer');
+    }
+    return resizers;
+  }
+
   function applyWidth(width, persist) {
     const maxWidth = getMaxWidth();
     const clamped = Math.round(Math.min(maxWidth, Math.max(MIN_WIDTH, width)));
     document.documentElement.style.setProperty('--sidebar-width', clamped + 'px');
 
-    const resizers = document.querySelectorAll('.split-resizer, .sub-resizer');
-    resizers.forEach(r => {
+    getResizers().forEach(r => {
       r.setAttribute('aria-valuenow', clamped);
     });
 
@@ -57,8 +65,7 @@
 
   function resetWidth() {
     document.documentElement.style.setProperty('--sidebar-width', DEFAULT_WIDTH + 'px');
-    const resizers = document.querySelectorAll('.split-resizer, .sub-resizer');
-    resizers.forEach(r => {
+    getResizers().forEach(r => {
       r.setAttribute('aria-valuenow', DEFAULT_WIDTH);
     });
     try {
@@ -163,8 +170,7 @@
       applyWidth(saved, false);
     }
 
-    const resizers = document.querySelectorAll('.split-resizer, .sub-resizer');
-    resizers.forEach(initResizer);
+    getResizers().forEach(initResizer);
 
     // Adjust if window resizes smaller than current sidebar + reading pane
     window.addEventListener('resize', () => {
