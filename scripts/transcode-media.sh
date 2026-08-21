@@ -22,7 +22,15 @@ set -euo pipefail
 # Resolve paths dynamically relative to script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-IMAGES_DIR="${PROJECT_ROOT}/assets/images"
+
+# Resolve images directory: check working directory (if invoked from site root) or project root
+if [ -d "${PWD}/assets/images" ]; then
+  IMAGES_DIR="${PWD}/assets/images"
+elif [ -d "${PROJECT_ROOT}/assets/images" ]; then
+  IMAGES_DIR="${PROJECT_ROOT}/assets/images"
+else
+  IMAGES_DIR="${PROJECT_ROOT}/assets/images"
+fi
 
 # Ensure image directory exists before proceeding
 if [ ! -d "${IMAGES_DIR}" ]; then
@@ -185,7 +193,10 @@ if [ "$HAS_CJXL" = true ]; then
       # -d 1.0: Butteraugli distance 1.0 (visually lossless compression)
       # -e 7: Encoder effort 7 (high compression efficiency)
       # --quiet: Suppress progress statistics output
-      cjxl "$src" "$dst" -d 1.0 -e 7 --quiet
+      if ! cjxl "$src" "$dst" -d 1.0 -e 7 --quiet 2>&1; then
+        echo "  [JXL] WARNING: Transcoding failed for '${filename}'. Skipping (original format preserved)."
+        rm -f "$dst"
+      fi
     fi
   done
 fi
@@ -207,7 +218,10 @@ if [ "$HAS_FFMPEG" = true ]; then
       # -b:v 0 -crf 32: Constant quality mode with CRF 32
       # -pix_fmt yuv420p: Wide hardware compatibility
       # -an: Strip any audio tracks
-      ffmpeg -y -i "$src" -c:v libvpx-vp9 -b:v 0 -crf 32 -pix_fmt yuv420p -an "$dst" -loglevel error
+      if ! ffmpeg -y -i "$src" -c:v libvpx-vp9 -b:v 0 -crf 32 -pix_fmt yuv420p -an "$dst" -loglevel error 2>&1; then
+        echo "  [WebM] WARNING: Transcoding failed for '${filename}'. Skipping (original GIF preserved)."
+        rm -f "$dst"
+      fi
     fi
   done
 fi

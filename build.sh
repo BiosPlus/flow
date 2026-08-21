@@ -27,8 +27,9 @@
 # Abort immediately if any command fails (exit on error)
 set -o errexit
 
-# Save the initial repository working directory
+# Save the initial repository working directory and script directory
 ORIGINAL_DIR="$PWD"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ------------------------------------------------------------------------------
 # Step 0: Environment Detection & User Toolchain Path Setup
@@ -169,25 +170,40 @@ fi
 # ------------------------------------------------------------------------------
 # Step 6: Media Asset Transcoding (Incremental JXL & WebM generation)
 # ------------------------------------------------------------------------------
-if [ -f "./scripts/transcode-media.sh" ]; then
-  echo "Invoking media transcoding pipeline..."
-  bash ./scripts/transcode-media.sh
+TRANSCODE_SCRIPT=""
+if [ -f "${SCRIPT_DIR}/scripts/transcode-media.sh" ]; then
+  TRANSCODE_SCRIPT="${SCRIPT_DIR}/scripts/transcode-media.sh"
+elif [ -f "./scripts/transcode-media.sh" ]; then
+  TRANSCODE_SCRIPT="./scripts/transcode-media.sh"
+elif [ -f "./themes/flow/scripts/transcode-media.sh" ]; then
+  TRANSCODE_SCRIPT="./themes/flow/scripts/transcode-media.sh"
+fi
+
+if [ -n "$TRANSCODE_SCRIPT" ]; then
+  echo "Invoking media transcoding pipeline (${TRANSCODE_SCRIPT})..."
+  bash "$TRANSCODE_SCRIPT"
 fi
 
 # ------------------------------------------------------------------------------
 # Step 7: Build Static Site with Hugo Extended
 # ------------------------------------------------------------------------------
-# Ensure theme directory symlink exists for CI environments (e.g. Cloudflare / Render)
-mkdir -p "${ORIGINAL_DIR}/themes"
-ln -sfn "${ORIGINAL_DIR}" "${ORIGINAL_DIR}/themes/flow"
-
-# --gc: run garbage collection on unused cached assets
-# --minify: minify HTML, CSS, JS, and SVG output
-hugo --source exampleSite --themesDir ../themes --theme flow --gc --minify
+if [ -d "exampleSite" ]; then
+  # Standalone theme repo build (e.g. flow theme demo)
+  mkdir -p "${ORIGINAL_DIR}/themes"
+  ln -sfn "${ORIGINAL_DIR}" "${ORIGINAL_DIR}/themes/flow"
+  hugo --source exampleSite --themesDir ../themes --theme flow --gc --minify
+else
+  # Site repository build (e.g. blog or personal site)
+  hugo --gc --minify
+fi
 
 # ------------------------------------------------------------------------------
 # Step 8: Generate Pagefind Search Index
 # ------------------------------------------------------------------------------
-# Indexes HTML articles in the `build/` directory for client-side search.js
-npx -y pagefind --site build
+# Indexes HTML articles for client-side search.js (detects build/ or public/)
+PAGES_OUT_DIR="build"
+if [ -d "public" ] && [ ! -d "build" ]; then
+  PAGES_OUT_DIR="public"
+fi
+npx -y pagefind --site "$PAGES_OUT_DIR"
 
