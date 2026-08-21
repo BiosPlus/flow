@@ -6,13 +6,14 @@
  *  2. Keyboard Traversal: Auto-scrolls tag strip items into view when focused via keyboard.
  *  3. Seamless Infinite Scroll: Automatically loads subsequent post pages as reader scrolls down.
  *  4. Client-Side Tag Filtering: Fetches and swaps the sidebar list dynamically when clicking tags.
+ *  5. Safe DOM Construction: Zero innerHTML usage with strict sanitization preventing XSS.
  */
 (function() {
   // Session storage keys for state persistence
   const SCROLL_KEY = 'flow-list-scroll';
   const ACTIVE_TAG_KEY = 'flow-active-tag';
 
-  // In-memory cache for tag sidebar HTML: url -> innerHTML
+  // In-memory cache for tag sidebar DOM nodes: url -> Node[]
   const tagListCache = new Map();
 
   let currentObserver = null;
@@ -29,6 +30,26 @@
       base += '/';
     }
     return base;
+  }
+
+  /**
+   * Validates and sanitizes URLs to prevent javascript: or unsafe scheme injection.
+   * @param {string} url - Target URL string.
+   * @returns {string} Sanitized URL safe for href attribute.
+   */
+  function sanitizeUrl(url) {
+    if (!url || typeof url !== 'string') return '#';
+    const trimmed = url.trim();
+    if (trimmed.startsWith('/') || trimmed.startsWith('#') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+      return trimmed;
+    }
+    try {
+      const parsed = new URL(trimmed, window.location.origin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.href;
+      }
+    } catch (e) {}
+    return '#';
   }
 
   /**
@@ -50,15 +71,136 @@
     }
   }
 
+  const ALLOWED_HTML_TAGS = new Set([
+    'div', 'nav', 'span', 'a', 'p', 'time', 'header', 'main', 'mark'
+  ]);
+
+  const ALLOWED_SVG_TAGS = new Set([
+    'svg', 'polyline', 'path', 'line', 'circle', 'rect', 'polygon'
+  ]);
+
+  const ALLOWED_ATTRS = new Set([
+    'class', 'id', 'role', 'title', 'tabindex',
+    'aria-label', 'aria-hidden', 'aria-current', 'aria-disabled',
+    'aria-valuenow', 'aria-valuemin', 'aria-valuemax', 'aria-orientation',
+    'data-first', 'data-last', 'data-total', 'data-next-url', 'data-prev-url', 'data-pager', 'data-base-url',
+    'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
+    'points', 'd', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'x', 'y'
+  ]);
+
+  const DANGEROUS_TAGS = new Set([
+    'script', 'style', 'iframe', 'object', 'embed', 'audio', 'video',
+    'img', 'base', 'link', 'meta', 'form', 'input', 'button', 'noscript'
+  ]);
+
   /**
-   * Parses an HTML string and extracts the innerHTML of `.list-pane`.
-   * @param {string} htmlString - Raw HTML fetched from server.
-   * @returns {string|null} Inner HTML of list pane, or null if not found.
+   * Safely clones and sanitizes a DOM node, neutralizing scripts, dangerous tags, and event handlers.
+   * @param {Node} node - Untrusted source DOM node from DOMParser.
+   * @returns {Node|null} Clean sanitized DOM node or DocumentFragment, or null if stripped.
    */
-  function extractListPane(htmlString) {
-    const doc = new DOMParser().parseFromString(htmlString, 'text/html');
-    const listPane = doc.querySelector('.list-pane');
-    return listPane ? listPane.innerHTML : null;
+  function cloneSanitizedNode(node) {
+    if (!node) return null;
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      return document.createTextNode(node.textContent);
+    }
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tagName = node.tagName.toLowerCase();
+      if (DANGEROUS_TAGS.has(tagName)) {
+        return null;
+      }
+
+      let cleanElement = null;
+
+      if (ALLOWED_SVG_TAGS.has(tagName)) {
+        cleanElement = document.createElementNS('http://www.w3.org/2000/svg', tagName);
+      } else if (ALLOWED_HTML_TAGS.has(tagName)) {
+        cleanElement = document.createElement(tagName);
+      } else {
+        // For unlisted, non-dangerous container elements, unwrap and sanitize child nodes
+        const fragment = document.createDocumentFragment();
+        for (const child of node.childNodes) {
+          const cleanChild = cloneSanitizedNode(child);
+          if (cleanChild) {
+            fragment.appendChild(cleanChild);
+          }
+        }
+        return fragment.hasChildNodes() ? fragment : null;
+      }
+
+      // Sanitize and copy attributes
+      for (const attr of node.attributes) {
+        const attrName = attr.name.toLowerCase();
+        // Drop any inline event handlers (onerror, onload, onclick, etc.)
+        if (attrName.startsWith('on')) {
+          continue;
+        }
+
+        if (attrName === 'href') {
+          cleanElement.setAttribute('href', sanitizeUrl(attr.value));
+        } else if (ALLOWED_ATTRS.has(attrName) || attrName.startsWith('data-') || attrName.startsWith('aria-')) {
+          cleanElement.setAttribute(attr.name, attr.value);
+        }
+      }
+
+      // Recursively clone and sanitize child nodes
+      for (const child of node.childNodes) {
+        const cleanChild = cloneSanitizedNode(child);
+        if (cleanChild) {
+          cleanElement.appendChild(cleanChild);
+        }
+      }
+
+      return cleanElement;
+    }
+
+    return null;
+  }
+
+  /**
+   * Helper to deeply clone an array of DOM nodes for safe reuse.
+   * @param {Node[]} nodes - Array of DOM nodes.
+   * @returns {Node[]} Array of cloned DOM nodes.
+   */
+  function cloneNodes(nodes) {
+    if (!nodes) return [];
+    return nodes.map(n => n.cloneNode(true));
+  }
+
+  /**
+   * Captures the current child nodes of a container element.
+   * @param {HTMLElement} element - Container element.
+   * @returns {Node[]} Cloned child nodes.
+   */
+  function captureChildNodes(element) {
+    if (!element) return [];
+    return Array.from(element.childNodes).map(n => n.cloneNode(true));
+  }
+
+  /**
+   * Parses an HTML string, locates `.list-pane`, and extracts sanitized child DOM nodes.
+   * @param {string} htmlString - Raw HTML fetched from server.
+   * @returns {Node[]|null} Array of sanitized DOM nodes, or null if not found.
+   */
+  function extractSanitizedListPaneNodes(htmlString) {
+    try {
+      const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+      const listPane = doc.querySelector('.list-pane');
+      if (!listPane) return null;
+
+      const sanitizedNodes = [];
+      for (const child of listPane.childNodes) {
+        const clean = cloneSanitizedNode(child);
+        if (clean) {
+          sanitizedNodes.push(clean);
+        }
+      }
+      return sanitizedNodes.length > 0 ? sanitizedNodes : null;
+    } catch (e) {
+      console.warn('Failed to parse list pane HTML:', e);
+      return null;
+    }
   }
 
   /**
@@ -151,13 +293,15 @@
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
 
-        const newRows = doc.querySelectorAll('.message-list-items .message-row');
+        const rawRows = doc.querySelectorAll('.message-list-items .message-row');
         const existingHrefs = new Set(
           Array.from(listItems.querySelectorAll('.message-row')).map(r => normalizeUrl(r.getAttribute('href')))
         );
 
-        // Append only non-duplicate rows
-        newRows.forEach(row => {
+        // Append only sanitized, non-duplicate rows
+        rawRows.forEach(rawRow => {
+          const row = cloneSanitizedNode(rawRow);
+          if (!row || row.nodeType !== Node.ELEMENT_NODE) return;
           const href = normalizeUrl(row.getAttribute('href'));
           if (!existingHrefs.has(href)) {
             if (href === currentPath) {
@@ -192,7 +336,7 @@
         // Update header next page button link / disabled state
         if (nextBtn) {
           if (nextUrl) {
-            nextBtn.setAttribute('href', nextUrl);
+            nextBtn.setAttribute('href', sanitizeUrl(nextUrl));
             nextBtn.classList.remove('disabled');
             nextBtn.removeAttribute('aria-disabled');
           } else {
@@ -202,13 +346,13 @@
           }
         }
 
-        // Keep cached HTML in sync with expanded list
+        // Keep cached nodes in sync with expanded list
         const activeTag = sessionStorage.getItem(ACTIVE_TAG_KEY);
         const homeUrl = getBaseUrl();
         if (activeTag) {
-          tagListCache.set(activeTag, listPane.innerHTML);
+          tagListCache.set(activeTag, captureChildNodes(listPane));
         } else if (currentPath === homeUrl) {
-          tagListCache.set(homeUrl, listPane.innerHTML);
+          tagListCache.set(homeUrl, captureChildNodes(listPane));
         }
         window.dispatchEvent(new CustomEvent('flow:list-updated', { detail: { url: activeTag || currentPath } }));
       } catch (err) {
@@ -269,19 +413,19 @@
     listPane.classList.add('is-filtering');
 
     try {
-      let listHtml = tagListCache.get(tagUrl);
-      if (!listHtml) {
+      let cachedNodes = tagListCache.get(tagUrl);
+      if (!cachedNodes) {
         const res = await fetch(tagUrl);
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const text = await res.text();
-        listHtml = extractListPane(text);
-        if (listHtml) {
-          tagListCache.set(tagUrl, listHtml);
+        cachedNodes = extractSanitizedListPaneNodes(text);
+        if (cachedNodes) {
+          tagListCache.set(tagUrl, cloneNodes(cachedNodes));
         }
       }
 
-      if (listHtml) {
-        listPane.innerHTML = listHtml;
+      if (cachedNodes && cachedNodes.length > 0) {
+        listPane.replaceChildren(...cloneNodes(cachedNodes));
 
         if (resetScroll) {
           listPane.scrollTop = 0;
@@ -325,7 +469,8 @@
         const backToList = document.querySelector('.back-to-list');
         if (backToList) {
           const homeUrl = getBaseUrl();
-          backToList.setAttribute('href', tagUrl === homeUrl ? homeUrl : tagUrl);
+          const targetHref = tagUrl === homeUrl ? homeUrl : tagUrl;
+          backToList.setAttribute('href', sanitizeUrl(targetHref));
         }
 
         // Persist active tag filter in sessionStorage
@@ -395,7 +540,7 @@
 
     // Cache initial list
     if (isHomePage) {
-      tagListCache.set(homeUrl, listPane.innerHTML);
+      tagListCache.set(homeUrl, captureChildNodes(listPane));
       sessionStorage.removeItem(ACTIVE_TAG_KEY);
       restoreScrollPosition();
       initInfiniteScroll();
@@ -405,7 +550,7 @@
       initInfiniteScroll();
     } else if (currentPath.startsWith(tagsRoot)) {
       // Direct visit to a tag URL
-      tagListCache.set(currentPath, listPane.innerHTML);
+      tagListCache.set(currentPath, captureChildNodes(listPane));
       sessionStorage.setItem(ACTIVE_TAG_KEY, currentPath);
       restoreScrollPosition();
       initInfiniteScroll();
